@@ -15,7 +15,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import maps.Maps;
 import viewer.PathViewer;
 
-public class Cromossoma implements Comparable<vitor.Cromossoma> {
+public class Cromossoma implements Comparable<Cromossoma> {
 
     public static IUIConfiguration conf;
 
@@ -38,7 +38,7 @@ public class Cromossoma implements Comparable<vitor.Cromossoma> {
 
     private double totaldist;
 
-    protected int tam = numeroAleatorio(minTam,maxTam);
+    protected int tam = numeroAleatorio(minTam, maxTam);
     public List<IPoint> points = new ArrayList<>();
     public List<Rectangle> rectangles;
 
@@ -51,19 +51,21 @@ public class Cromossoma implements Comparable<vitor.Cromossoma> {
     }
 
     public Cromossoma(Cromossoma cromossoma) { //Para as mutações
-
+        points = cromossoma.getPoints();
+        rectangles = conf.getObstacles();
+        totaldist = 0.0;
     }
 
-    public void starting(){
-        for(int i =0;i<tam;i++){
-            int x = numeroAleatorio(minMap,maxMap);
-            int y = numeroAleatorio(minMap,maxMap);
-            points.add(new Point(x,y));
+    public void starting() {
+        for (int i = 0; i < tam; i++) {
+            int x = numeroAleatorio(minMap, maxMap);
+            int y = numeroAleatorio(minMap, maxMap);
+            points.add(new Point(x, y));
 
         }
     }
 
-    public int numeroAleatorio(int min, int max){
+    public int numeroAleatorio(int min, int max) {
 
         Random rand = new Random();
         int randomNum = rand.nextInt((max - min) + 1) + min;
@@ -71,7 +73,7 @@ public class Cromossoma implements Comparable<vitor.Cromossoma> {
         return randomNum;
     }
 
-    public void map(){
+    public void map() {
         PathViewer pv = new PathViewer(conf);
         pv.setFitness(9999);
         pv.setStringPath("test");
@@ -81,31 +83,54 @@ public class Cromossoma implements Comparable<vitor.Cromossoma> {
     public Cromossoma mutate() {
         Cromossoma novo = new Cromossoma(this);
         Random random = new Random();
+        int newx;
+        int newy;
+        if (points.size() <= 3 ) {
+            newx = numeroAleatorio(minMap, maxMap);
+            newy = numeroAleatorio(minMap, maxMap);
+            novo.points.add(points.size()-1, new Point(newx, newy));
+        } else {
+            int rand;
+            do {
+                rand = random.nextInt((points.size()-2));
+                newx = points.get(rand).getX() + ThreadLocalRandom.current().nextInt((int) -Conf.mutation_rate, (int) Conf.mutation_rate);
+                newy = points.get(rand).getY() + ThreadLocalRandom.current().nextInt((int) -Conf.mutation_rate, (int) Conf.mutation_rate);
+            } while (newx <= 0 || newy <= 0 || rand == 0);
+            Point newpoint = new Point(newx, newy);
 
-
+            novo.points.set(rand, newpoint);
+        }
         return novo;
     }
 
-    public void givePoints(){
-        for(int ix=1; ix<this.points.size(); ix++){
-            Point point = (Point) this.points.get(ix);
-            Point prevPoint = (Point) this.points.get(ix-1);
-            System.out.println(prevPoint.getX()+"; "+ point.getX()+"; "+prevPoint.getY()+"; "+ point.getY());
+    public String[] givePoints() {
+        Point point;
+        Point prevPoint;
+        String[] lines = new String[points.size()];
+        for (int ix = 1; ix < this.points.size(); ix++) {
+            point = (Point) this.points.get(ix);
+            prevPoint = (Point) this.points.get(ix - 1);
+            lines[ix - 1] = (prevPoint.getX() + "; " + point.getX() + "; " + prevPoint.getY() + "; " + point.getY());
+            System.out.println("Point "+ix+ ": "+ (prevPoint.getX() + "; " + point.getX() + "; " + prevPoint.getY() + "; " + point.getY()));
         }
+        return lines;
     }
 
-    public boolean colisionChecker(){
+    public List<IPoint> getPoints() {
+        return points;
+    }
 
+    public boolean colisionChecker() {
         boolean colflag = false;
 
-        for(int ix=1; ix<this.points.size(); ix++){
+        for (int ix = 1; ix < this.points.size(); ix++) {
             Point point = (Point) this.points.get(ix);
-            Point prevPoint = (Point) this.points.get(ix-1);
-            Line2D line2d = new Line2D.Double(prevPoint.getX(), point.getX(), prevPoint.getY(), point.getY());
+            Point prevPoint = (Point) this.points.get(ix - 1);
+            Line2D line2d = new Line2D.Double(prevPoint.getX(), prevPoint.getY(), point.getX(), point.getY());
             // System.out.println(prevPoint.getX()+"; "+ point.getX()+"; "+prevPoint.getY()+"; "+ point.getY());
-            for(int jx=0; jx<this.rectangles.size(); jx++){
+            for (int jx = 0; jx < this.rectangles.size(); jx++) {
                 boolean collided = line2d.intersects(this.rectangles.get(jx));
-                if(collided){
+                if (collided) {
                     colflag = true;
                 }
                 //System.out.println("Rectangle: "+jx+"; Touches: "+collided);
@@ -114,20 +139,20 @@ public class Cromossoma implements Comparable<vitor.Cromossoma> {
         return colflag;
     }
 
-    public double getDistance(){
+    public double getDistance() {
         totaldist = 0.0;
-        for(int ix=1; ix<this.points.size(); ix++){
+        for (int ix = 1; ix < this.points.size(); ix++) {
             Point point = (Point) this.points.get(ix);
-            Point prevPoint = (Point) this.points.get(ix-1);
+            Point prevPoint = (Point) this.points.get(ix - 1);
             totaldist = totaldist + Math.sqrt((point.getY() - prevPoint.getY()) * (point.getY() - prevPoint.getY()) + (point.getX() - prevPoint.getX()) * (point.getX() - prevPoint.getX()));
         }
         return totaldist;
     }
 
-    public double getFitness(){
+    public double getFitness() {
         double value = 0.0;
 
-        if(colisionChecker()){
+        if (colisionChecker()) {
             value = colisionWeight;
         }
 
@@ -137,7 +162,7 @@ public class Cromossoma implements Comparable<vitor.Cromossoma> {
     }
 
     @Override
-    public int compareTo(vitor.Cromossoma o) {
+    public int compareTo(Cromossoma o) {
         if (o.getFitness() < this.getFitness())
             return 1;
         else if (o.getFitness() > this.getFitness())
@@ -147,7 +172,7 @@ public class Cromossoma implements Comparable<vitor.Cromossoma> {
 
     @Override
     public String toString() {
-        return "Fitness: "+ getFitness()
-                +"Pontos: ";
+        return "Fitness: " + getFitness()
+                + "Pontos: ";
     }
 }

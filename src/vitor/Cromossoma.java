@@ -85,7 +85,7 @@ public class Cromossoma implements Comparable<Cromossoma> {
         for(int ix=1; ix<this.points.size(); ix++){
             Point point = (Point) this.points.get(ix);
             Point prevPoint = (Point) this.points.get(ix-1);
-            Line2D line2d = new Line2D.Double(prevPoint.getX(), point.getX(), prevPoint.getY(), point.getY());
+            Line2D line2d = new Line2D.Double(prevPoint.getX(), prevPoint.getY(), point.getX(), point.getY());
             // System.out.println(prevPoint.getX()+"; "+ point.getX()+"; "+prevPoint.getY()+"; "+ point.getY());
             for(int jx=0; jx<this.rectangles.size(); jx++){
                 boolean collided = line2d.intersects(this.rectangles.get(jx));
