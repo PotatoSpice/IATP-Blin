@@ -18,7 +18,7 @@ public class Cromossoma implements Comparable<Cromossoma> {
 
     static {
         try {
-            conf = Maps.getMap(7);
+            conf = Maps.getMap(4);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -133,12 +133,45 @@ public class Cromossoma implements Comparable<Cromossoma> {
 
         }
 
-
         filho1.points.add(conf.getEnd());
         filho2.points.add(conf.getEnd());
 
+        Cromossoma[] novos = {filho1, filho2};
+
+        return novos;
+    }
+
+    public Cromossoma[] cross2(Cromossoma other){
+
+        Cromossoma filho1 = new Cromossoma();
+        Cromossoma filho2 = new Cromossoma();
+
+        filho1.points.clear();
+        filho2.points.clear();
+
+        filho1.points.add(conf.getStart());
+        filho2.points.add(conf.getStart());
 
 
+        int sizePai = this.points.size();
+        int sizeMae = other.points.size();
+
+        //logica filho1
+        for (int i = 1; i <sizePai-1 ; i++) {
+            int x = this.points.get(i).getX()+other.points.get(i).getX();
+            int y = this.points.get(i).getY()+other.points.get(i).getY();
+            filho1.points.add(new Point(x/2,y/2));
+        }
+
+        //logica filho 2
+        for (int i = 1; i <sizeMae-1 ; i++) {
+            int x = this.points.get(i).getX()+other.points.get(i).getX();
+            int y = this.points.get(i).getY()+other.points.get(i).getY();
+            filho2.points.add(new Point(y/2,x/2));
+        }
+
+        filho1.points.add(conf.getEnd());
+        filho2.points.add(conf.getEnd());
 
 
         Cromossoma[] novos = {filho1, filho2};

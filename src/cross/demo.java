@@ -21,6 +21,7 @@ public class demo {
        System.out.println(cromossomaList.get(0).toString());
        cromossomaList.get(0).getPoints();
        */
+        System.out.println("Cross 1");
         Cromossoma[] testCross =cromossomaList.get(0).cross1(cromossomaList.get(1));
 
         System.out.println("pai->"+cromossomaList.get(0));
@@ -32,6 +33,18 @@ public class demo {
         testCross[1].getPoints();
         testCross[1].map();
 
+        System.out.println("Cross 2");
+        Cromossoma[] testCross2 =cromossomaList.get(0).cross2(cromossomaList.get(1));
+
+        System.out.println("pai->"+cromossomaList.get(0));
+        cromossomaList.get(0).getPoints();
+        System.out.println("mae->"+cromossomaList.get(1));
+        cromossomaList.get(1).getPoints();
+
+        System.out.println("filho1->"+testCross2[0]);
+        testCross2[0].getPoints();
+        System.out.println("filho2->"+testCross2[1]);
+        testCross2[1].getPoints();
 
 
     }
