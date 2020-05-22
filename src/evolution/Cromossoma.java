@@ -95,7 +95,7 @@ public class Cromossoma implements Comparable<Cromossoma> {
                 rand = random.nextInt((points.size()-2));
                 newx = points.get(rand).getX() + ThreadLocalRandom.current().nextInt((int) -Conf.mutation_rate, (int) Conf.mutation_rate);
                 newy = points.get(rand).getY() + ThreadLocalRandom.current().nextInt((int) -Conf.mutation_rate, (int) Conf.mutation_rate);
-            } while (newx <= 0 || newy <= 0 || rand == 0);
+            } while (newx <= 0 || newy <= 0 || newx >= 600 || newy >= 600 || rand == 0);
             Point newpoint = new Point(newx, newy);
 
             novo.points.set(rand, newpoint);
