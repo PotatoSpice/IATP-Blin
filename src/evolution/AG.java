@@ -81,7 +81,7 @@ public class AG {
         for (int ix = 0; ix<pop.size(); ix++)
             System.out.println(ix+" ;"+pop.get(ix));
         dataToCSV(best_fitness, avg_fitness);
-    return pop.get(10);
+    return pop.get(0);
     }
 
     public Cromossoma getCopyOfRandomSolution(List<Cromossoma> lista) {
