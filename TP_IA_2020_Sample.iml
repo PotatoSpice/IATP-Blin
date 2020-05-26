@@ -16,7 +16,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="TP_IA_2020_Resources" level="project" />
     <orderEntry type="module-library">
       <library>
         <CLASSES>
@@ -26,5 +25,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="TP_IA_2020_Resources" level="project" />
   </component>
 </module>

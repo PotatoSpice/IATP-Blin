@@ -1,5 +1,7 @@
 package evolution;
 
+import performance.Evaluate;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,17 +28,18 @@ public class AG {
         Cromossoma bestSolutionEver;
         List<Double> best_fitness = new ArrayList<>();
         List<Double> avg_fitness = new ArrayList<>();
-
+        int generationCounter = 0;
         List<Cromossoma> pop;
         pop = init();
         Collections.sort(pop);
         bestSolutionEver = pop.get(0);
         best_fitness.add(pop.get(0).getFitness());
         avg_fitness.add(pop.stream().mapToDouble(x -> x.getFitness()).average().getAsDouble());
+        Evaluate evaluate =  new Evaluate(Conf.pop_size, 10, "Blin Machine");
 
         while(iteration_counter < Conf.generation_limit && convergence_counter < Conf.converence_limit) {
 
-            System.out.println("Iteration: "+iteration_counter);
+            //System.out.println("Iteration: "+iteration_counter);
 
             //selecionar melhores soluções
             List<Cromossoma> best = pop.stream().limit(Conf.pop_select).collect(Collectors.toList());
@@ -50,6 +53,10 @@ public class AG {
             for(int i = 0; i< Conf.cross_limit; i++) {
                 Cromossoma c1 = getCopyOfRandomSolution(best);
                 Cromossoma c2 = getCopyOfRandomSolution(best);
+
+                Cromossoma[] cr = c1.cross(c2);
+                filhos.add(cr[0]);
+                filhos.add(cr[1]);
             }
 
             //aleatórias
@@ -74,14 +81,16 @@ public class AG {
             else {
                 convergence_counter = 0;
                 last_fitness_value = pop.get(0).getFitness();
+                bestSolutionEver = pop.get(0);
+                //evaluate = recordClassification(evaluate, bestSolutionEver, generationCounter);
+                evaluate.addSolution(bestSolutionEver.getPoints(), generationCounter);
             }
-            System.out.println(convergence_counter);
+            generationCounter++;
         }
-
-        for (int ix = 0; ix<pop.size(); ix++)
-            System.out.println(ix+" ;"+pop.get(ix));
+        //submitClassification(evaluate);
+         evaluate.submit();
         dataToCSV(best_fitness, avg_fitness);
-    return pop.get(0);
+    return bestSolutionEver;
     }
 
     public Cromossoma getCopyOfRandomSolution(List<Cromossoma> lista) {
@@ -100,5 +109,14 @@ public class AG {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public Evaluate recordClassification(Evaluate evaluate, Cromossoma bestCromossoma, int counter){
+        evaluate.addSolution(bestCromossoma.getPoints(), counter);
+        return evaluate;
+    }
+
+    public boolean submitClassification(Evaluate eval){
+        return eval.submit();
     }
 }
