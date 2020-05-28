@@ -35,7 +35,7 @@ public class AG {
         bestSolutionEver = pop.get(0);
         best_fitness.add(pop.get(0).getFitness());
         avg_fitness.add(pop.stream().mapToDouble(x -> x.getFitness()).average().getAsDouble());
-        Evaluate evaluate =  new Evaluate(Conf.pop_size, 10, "Blin Machine");
+        Evaluate evaluate =  new Evaluate(Conf.pop_size, 3, "Blin Machine");
 
         while(iteration_counter < Conf.generation_limit && convergence_counter < Conf.converence_limit) {
 
@@ -82,8 +82,8 @@ public class AG {
                 convergence_counter = 0;
                 last_fitness_value = pop.get(0).getFitness();
                 bestSolutionEver = pop.get(0);
-                //evaluate = recordClassification(evaluate, bestSolutionEver, generationCounter);
-                evaluate.addSolution(bestSolutionEver.getPoints(), generationCounter);
+                evaluate = recordClassification(evaluate, bestSolutionEver, generationCounter);
+                //evaluate.addSolution(bestSolutionEver.getPoints(), generationCounter);
             }
             generationCounter++;
         }
@@ -94,7 +94,7 @@ public class AG {
     }
 
     public Cromossoma getCopyOfRandomSolution(List<Cromossoma> lista) {
-        return new Cromossoma(lista.get(new Random().nextInt(lista.size())));
+        return lista.get(new Random().nextInt(lista.size()));
     }
 
     public boolean dataToCSV(List<Double> best_fitness, List<Double> avg_fitness){

@@ -19,11 +19,11 @@ public class Cromossoma implements Comparable<Cromossoma> {
 
     public static IUIConfiguration conf;
 
-    public int map = 10;
+    public int map = 3;
 
     static {
         try {
-            conf = Maps.getMap(10);
+            conf = Maps.getMap(3);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -31,8 +31,8 @@ public class Cromossoma implements Comparable<Cromossoma> {
 
     private Conf dataConf = new Conf();
 
-    private int maxTam = 7;
-    private int minTam = 2;
+    private int maxTam = 5;
+    private int minTam = 0;
     private int maxMap = 600;
     private int minMap = 0;
     private int colisionN = 0;
@@ -46,24 +46,34 @@ public class Cromossoma implements Comparable<Cromossoma> {
     public List<Rectangle> rectangles;
 
     public Cromossoma() {
+        rectangles = conf.getObstacles();
         points.add(conf.getStart());
         this.starting();
         points.add(conf.getEnd());
-        rectangles = conf.getObstacles();
         totaldist = 0.0;
     }
 
-    public Cromossoma(Cromossoma cromossoma) { //Para as mutações
-        points = cromossoma.getPoints();
+    public Cromossoma(boolean child) { //Para as mutações
         rectangles = conf.getObstacles();
         totaldist = 0.0;
     }
 
     public void starting() {
-        for (int i = 0; i < tam; i++) {
-            int x = numeroAleatorio(minMap, maxMap);
-            int y = numeroAleatorio(minMap, maxMap);
-            points.add(new Point(x, y));
+        if (lineIntersects((Point) points.get(0), (Point) conf.getEnd())) {
+            Point oldPoint = (Point) points.get(0);
+            Point newPoint;
+            int x;
+            int y;
+            do {
+                do {
+                    x = numeroAleatorio(minMap, maxMap);
+                    y = numeroAleatorio(minMap, maxMap);
+                    newPoint = new Point(x, y);
+                } while (lineIntersects(oldPoint, newPoint));
+                points.add(newPoint);
+                oldPoint = newPoint;
+                //System.out.println("X: " + x + "; Y: " + y);
+            }while(lineIntersects(oldPoint, (Point) conf.getEnd()));
         }
     }
 
@@ -86,7 +96,7 @@ public class Cromossoma implements Comparable<Cromossoma> {
         Cromossoma novo = new Cromossoma();
         novo.points.clear();
 
-        for(int ix=0; ix<points.size(); ix++){
+        for (int ix = 0; ix < points.size(); ix++) {
             novo.points.add(this.points.get(ix));
         }
 
@@ -94,8 +104,8 @@ public class Cromossoma implements Comparable<Cromossoma> {
         int newx;
         int newy;
 
-        if(this.colisionChecker()){
-            if (points.size() <= 3 ) {
+        if (this.colisionChecker()) {
+            if (points.size() <= 3) {
                 /*newx = numeroAleatorio(minMap, maxMap);
                 newy = numeroAleatorio(minMap, maxMap);
                 int rand = 1 + random.nextInt((points.size()-2));
@@ -105,7 +115,7 @@ public class Cromossoma implements Comparable<Cromossoma> {
             } else {
                 int rand;
                 do {
-                    rand = random.nextInt((points.size()-2));
+                    rand = random.nextInt((points.size() - 2));
                     newx = numeroAleatorio(minMap, maxMap);
                     newy = numeroAleatorio(minMap, maxMap);
                     //System.out.println(newx + "; "+ newy);
@@ -114,8 +124,8 @@ public class Cromossoma implements Comparable<Cromossoma> {
                 novo.points.set(rand, newpoint);
                 //System.out.println(points.get(rand));
             }
-        }else{
-            if (points.size() <= 3 ) {
+        } else {
+            if (points.size() <= 3) {
                /* newx = numeroAleatorio(minMap, maxMap);
                 newy = numeroAleatorio(minMap, maxMap);
                 int rand = 1 + random.nextInt((points.size()-2));
@@ -125,7 +135,7 @@ public class Cromossoma implements Comparable<Cromossoma> {
             } else {
                 int rand;
                 do {
-                    rand = random.nextInt((points.size()-1));
+                    rand = random.nextInt((points.size() - 1));
                     newx = points.get(rand).getX() + ThreadLocalRandom.current().nextInt((int) -Conf.mutation_rate, (int) Conf.mutation_rate);
                     newy = points.get(rand).getY() + ThreadLocalRandom.current().nextInt((int) -Conf.mutation_rate, (int) Conf.mutation_rate);
                 } while (newx <= 0 || newy <= 0 || newx >= 600 || newy >= 600 || rand == 0);
@@ -143,10 +153,10 @@ public class Cromossoma implements Comparable<Cromossoma> {
         return novo;
     }
 
-    public Cromossoma[] cross(Cromossoma other){
+    public Cromossoma[] cross(Cromossoma other) {
 
-        Cromossoma filho1 = new Cromossoma();
-        Cromossoma filho2 = new Cromossoma();
+        Cromossoma filho1 = new Cromossoma(true);
+        Cromossoma filho2 = new Cromossoma(true);
 
         filho1.points.clear();
         filho2.points.clear();
@@ -158,24 +168,24 @@ public class Cromossoma implements Comparable<Cromossoma> {
         int sizePai = this.points.size();
         int sizeMae = other.points.size();
         int minSize;
-        if(sizeMae>sizePai){
+        if (sizeMae > sizePai) {
             minSize = sizePai;
-        }else{
+        } else {
             minSize = sizeMae;
         }
 
         //logica filho1
-        for (int i = 1; i < minSize-1 ; i++) {
-            int x = this.points.get(i).getX()+other.points.get(i).getX();
-            int y = this.points.get(i).getY()+other.points.get(i).getY();
-            filho1.points.add(new Point(x/2,y/2));
+        for (int i = 1; i < minSize - 1; i++) {
+            int x = this.points.get(i).getX() + other.points.get(i).getX();
+            int y = this.points.get(i).getY() + other.points.get(i).getY();
+            filho1.points.add(new Point(x / 2, y / 2));
         }
 
         //logica filho 2
-        for (int i = 1; i < minSize-1 ; i++) {
-            int x = this.points.get(i).getX()+other.points.get(i).getX();
-            int y = this.points.get(i).getY()+other.points.get(i).getY();
-            filho2.points.add(new Point(y/2,x/2));
+        for (int i = 1; i < minSize - 1; i++) {
+            int x = this.points.get(i).getX() + other.points.get(i).getX();
+            int y = this.points.get(i).getY() + other.points.get(i).getY();
+            filho2.points.add(new Point(y / 2, x / 2));
         }
 
         filho1.points.add(conf.getEnd());
@@ -195,7 +205,7 @@ public class Cromossoma implements Comparable<Cromossoma> {
             point = (Point) this.points.get(ix);
             prevPoint = (Point) this.points.get(ix - 1);
             lines[ix - 1] = (prevPoint.getX() + "; " + point.getX() + "; " + prevPoint.getY() + "; " + point.getY());
-            System.out.println("Point "+ix+ ": "+ (prevPoint.getX() + "; " + point.getX() + "; " + prevPoint.getY() + "; " + point.getY()));
+            System.out.println("Point " + ix + ": " + (prevPoint.getX() + "; " + point.getX() + "; " + prevPoint.getY() + "; " + point.getY()));
         }
         return lines;
     }
@@ -224,6 +234,16 @@ public class Cromossoma implements Comparable<Cromossoma> {
         return colflag;
     }
 
+    public boolean lineIntersects(Point point1, Point point2) {
+        Line2D line2d = new Line2D.Double(point1.getX(), point1.getY(), point2.getX(), point2.getY());
+        for (int ix = 0; ix < this.rectangles.size(); ix++) {
+            if (line2d.intersects(this.rectangles.get(ix)))
+                return true;
+
+        }
+        return false;
+    }
+
     public double getDistance() {
         totaldist = 0.0;
         for (int ix = 1; ix < this.points.size(); ix++) {
@@ -238,10 +258,10 @@ public class Cromossoma implements Comparable<Cromossoma> {
         double value = 0.0;
 
         if (colisionChecker()) {
-            value = colisionWeight*colisionN;
+            value = colisionWeight * colisionN;
         }
 
-        value = value + getDistance();
+        value = value + getDistance() + (100*points.size());
 
         return value;
     }
@@ -258,6 +278,7 @@ public class Cromossoma implements Comparable<Cromossoma> {
     @Override
     public String toString() {
         return "Fitness: " + getFitness()
-                + "Pontos: ";
+                +"\nDistância: "+getDistance()
+                + "\nPontos => ";
     }
 }
