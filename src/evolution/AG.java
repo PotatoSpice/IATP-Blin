@@ -35,7 +35,7 @@ public class AG {
         bestSolutionEver = pop.get(0);
         best_fitness.add(pop.get(0).getFitness());
         avg_fitness.add(pop.stream().mapToDouble(x -> x.getFitness()).average().getAsDouble());
-        Evaluate evaluate =  new Evaluate(Conf.pop_size, 3, "Blin Machine");
+        Evaluate evaluate =  new Evaluate(Conf.pop_size, 6, "Blin Machine");
 
         while(iteration_counter < Conf.generation_limit && convergence_counter < Conf.converence_limit) {
 
