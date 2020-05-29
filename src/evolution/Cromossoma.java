@@ -19,11 +19,11 @@ public class Cromossoma implements Comparable<Cromossoma> {
 
     public static IUIConfiguration conf;
 
-    public int map = 3;
+    public int map = 6;
 
     static {
         try {
-            conf = Maps.getMap(3);
+            conf = Maps.getMap(6);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -158,12 +158,8 @@ public class Cromossoma implements Comparable<Cromossoma> {
         Cromossoma filho1 = new Cromossoma(true);
         Cromossoma filho2 = new Cromossoma(true);
 
-        filho1.points.clear();
-        filho2.points.clear();
-
         filho1.points.add(conf.getStart());
         filho2.points.add(conf.getStart());
-
 
         int sizePai = this.points.size();
         int sizeMae = other.points.size();
@@ -190,7 +186,6 @@ public class Cromossoma implements Comparable<Cromossoma> {
 
         filho1.points.add(conf.getEnd());
         filho2.points.add(conf.getEnd());
-
 
         Cromossoma[] novos = {filho1, filho2};
 
