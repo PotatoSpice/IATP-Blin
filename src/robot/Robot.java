@@ -1,5 +1,7 @@
 package robot;
 
+import evolution.AG;
+import evolution.Cromossoma;
 import impl.UIConfiguration;
 import interf.IPoint;
 import performance.EvaluateFire;
@@ -133,18 +135,10 @@ public class Robot extends robocode.AdvancedRobot {
         conf.setStart((IPoint)new Point((int) this.getX(), (int) this.getY()));
         conf.setEnd((IPoint)new Point(e.getX(), e.getY()));
 
-        /*
-         * TODO: Implementar a chamada ao algoritmo genético!
-         *
-         * */
-        System.out.println("Choo Choo!!!");
-        points = new ArrayList<>();
-        points.add((IPoint) new Point(100,100));
-        points.add((IPoint) new Point(200,200));
-        points.add((IPoint) new Point(250,500));
-        points.add((IPoint) new Point(300,350));
+        AG geneticalgorithm = new AG();
+        Cromossoma best = geneticalgorithm.run();
+        points = best.getPoints(); // Carrega os pontos da melhor solução encontrada
 
-        currentPoint = 0;
     }
 
 
