@@ -19,20 +19,17 @@ public class Cromossoma implements Comparable<Cromossoma> {
 
     public static IUIConfiguration conf;
 
-    public int map = 6;
 
     static {
         try {
-            conf = Maps.getMap(6);
+            conf = Maps.getMap(Conf.map);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private Conf dataConf = new Conf();
 
-    private int maxTam = 5;
-    private int minTam = 0;
+
     private int maxMap = 600;
     private int minMap = 0;
     private int colisionN = 0;
@@ -41,7 +38,7 @@ public class Cromossoma implements Comparable<Cromossoma> {
 
     private double totaldist;
 
-    protected int tam = numeroAleatorio(minTam, maxTam);
+
     public List<IPoint> points = new ArrayList<>();
     public List<Rectangle> rectangles;
 
