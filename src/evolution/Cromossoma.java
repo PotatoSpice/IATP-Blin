@@ -7,6 +7,7 @@ import maps.Maps;
 
 import java.awt.*;
 import java.awt.geom.Line2D;
+import java.awt.image.CropImageFilter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -20,14 +21,14 @@ public class Cromossoma implements Comparable<Cromossoma> {
     public static IUIConfiguration conf;
 
     public int map = 6;
-
+    /*
     static {
         try {
             conf = Maps.getMap(6);
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
+    } */
 
     private Conf dataConf = new Conf();
 
@@ -46,6 +47,15 @@ public class Cromossoma implements Comparable<Cromossoma> {
     public List<Rectangle> rectangles;
 
     public Cromossoma() {
+        rectangles = conf.getObstacles();
+        points.add(conf.getStart());
+        this.starting();
+        points.add(conf.getEnd());
+        totaldist = 0.0;
+    }
+
+    public Cromossoma(IUIConfiguration conf){
+        this.conf = conf;
         rectangles = conf.getObstacles();
         points.add(conf.getStart());
         this.starting();

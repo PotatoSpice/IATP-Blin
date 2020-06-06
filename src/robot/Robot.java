@@ -4,6 +4,7 @@ import evolution.AG;
 import evolution.Cromossoma;
 import impl.UIConfiguration;
 import interf.IPoint;
+import impl.Point;
 import performance.EvaluateFire;
 import robocode.*;
 import utils.Utils;
@@ -16,7 +17,7 @@ import java.util.List;
 import java.util.HashMap;
 
 
-public class Robot extends robocode.AdvancedRobot {
+public class Robot extends AdvancedRobot {
     EvaluateFire ef;
 
     private List<Rectangle> obstacles;
@@ -28,20 +29,16 @@ public class Robot extends robocode.AdvancedRobot {
     private int currentPoint = -1;
 
     @Override
-    public void run()
-    {
+    public void run() {
         super.run();
+        System.out.println("BLIN MACHINE IS RAD");
         ef = new EvaluateFire("Blin Machine");
         obstacles = new ArrayList<>();
         inimigos = new HashMap<>();
         conf = new UIConfiguration((int) getBattleFieldWidth(), (int) getBattleFieldHeight() , obstacles);
 
         while(true){
-            this.setTurnRadarRight(360);
-
-            //se se está a dirigir para algum ponto
-            if (currentPoint >= 0)
-            {
+            if (currentPoint >= 0) {
                 IPoint ponto = points.get(currentPoint);
                 //se já está no ponto ou lá perto...
                 if (Utils.getDistance(this, ponto.getX(), ponto.getY()) < 2){
@@ -52,8 +49,8 @@ public class Robot extends robocode.AdvancedRobot {
                 }
 
                 advancedRobotGoTo(this, ponto.getX(), ponto.getY());
-            }
 
+            }
             this.execute();
         }
     }
@@ -65,7 +62,6 @@ public class Robot extends robocode.AdvancedRobot {
     @Override
     public void onPaint(Graphics2D g) {
         super.onPaint(g);
-
         g.setColor(Color.RED);
         obstacles.stream().forEach(x -> g.drawRect(x.x, x.y, (int) x.getWidth(), (int) x.getHeight()));
 
@@ -107,7 +103,6 @@ public class Robot extends robocode.AdvancedRobot {
     @Override
     public void onRobotDeath(RobotDeathEvent event) {
         super.onRobotDeath(event);
-
         Rectangle rect = inimigos.get(event.getName());
         obstacles.remove(rect);
         inimigos.remove(event.getName());
@@ -132,21 +127,27 @@ public class Robot extends robocode.AdvancedRobot {
     public void onMouseClicked(MouseEvent e) {
         super.onMouseClicked(e);
 
-        conf.setStart((IPoint)new Point((int) this.getX(), (int) this.getY()));
-        conf.setEnd((IPoint)new Point(e.getX(), e.getY()));
+        IPoint startpoint = new Point((int) this.getX(), (int) this.getY());
+        IPoint endpoint = new Point( e.getX(), e.getY());
+        System.out.println(startpoint+ "\n"+ endpoint);
 
-        AG geneticalgorithm = new AG();
+        conf.setStart(startpoint);
+        conf.setEnd(endpoint);
+
+        AG geneticalgorithm = new AG(conf);
         Cromossoma best = geneticalgorithm.run();
         points = best.getPoints(); // Carrega os pontos da melhor solução encontrada
-
+        System.out.println(points);
+        currentPoint = 0;
+        this.execute();
     }
 
 
     @Override
     public void onBulletHit(BulletHitEvent event) {
         super.onBulletHit(event);
-
         //TODO: usar este método sempre que acertam num robot
+
         ef.addHit(event);
     }
 
@@ -157,7 +158,7 @@ public class Robot extends robocode.AdvancedRobot {
         super.onBattleEnded(event);
 
         //TODO: usar este método no final da batalha
-        ef.submit(event.getResults());
+        // ef.submit(event.getResults());
     }
 
     /**
@@ -176,6 +177,7 @@ public class Robot extends robocode.AdvancedRobot {
         double targetAngle = robocode.util.Utils.normalRelativeAngle(angleToTarget - Math.toRadians(robot.getHeading()));
         double distance = Math.hypot(x, y);
         double turnAngle = Math.atan(Math.tan(targetAngle));
+        System.out.println(turnAngle);
         robot.setTurnRight(Math.toDegrees(turnAngle));
         if (targetAngle == turnAngle)
             robot.setAhead(distance);

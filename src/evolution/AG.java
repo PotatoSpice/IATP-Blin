@@ -1,5 +1,6 @@
 package evolution;
 
+import interf.IUIConfiguration;
 import performance.Evaluate;
 
 import java.io.FileWriter;
@@ -16,9 +17,13 @@ public class AG {
     private double last_fitness_value = 0;
     private int convergence_counter = 0;
     private int iteration_counter = 0;
+    private IUIConfiguration uiconf;
+    public AG (IUIConfiguration conf){
+        this.uiconf = conf;
+    }
 
     public List<Cromossoma> init() {
-        List<Cromossoma> gen1_func = Stream.generate(() -> new Cromossoma())
+        List<Cromossoma> gen1_func = Stream.generate(() -> new Cromossoma(uiconf))
                 .limit(Conf.pop_size)
                 .collect(Collectors.toList());
         return gen1_func;
