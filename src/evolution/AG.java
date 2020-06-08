@@ -3,6 +3,7 @@ package evolution;
 import interf.IUIConfiguration;
 import performance.Evaluate;
 
+import java.awt.*;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,6 +21,10 @@ public class AG {
     private IUIConfiguration uiconf;
     public AG (IUIConfiguration conf){
         this.uiconf = conf;
+    }
+
+    public AG (){
+
     }
 
     public List<Cromossoma> init() {
@@ -93,7 +98,7 @@ public class AG {
             generationCounter++;
         }
         //submitClassification(evaluate);
-         evaluate.submit();
+         // evaluate.submit();
         dataToCSV(best_fitness, avg_fitness);
     return bestSolutionEver;
     }

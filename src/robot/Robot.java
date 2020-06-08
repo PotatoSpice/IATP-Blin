@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 
+import static robocode.util.Utils.normalRelativeAngleDegrees;
+
 
 public class Robot extends AdvancedRobot {
     EvaluateFire ef;
@@ -24,6 +26,9 @@ public class Robot extends AdvancedRobot {
     public static UIConfiguration conf;
     private List<IPoint> points;
     private HashMap<String, Rectangle> inimigos; //utilizada par associar inimigos a retângulos e permitir remover retângulos de inimigos já desatualizados
+    private double turn;
+    private int count;
+    private MouseEvent mouseEvent = null;
 
     //variável que contém o ponto atual para o qual o robot se está a dirigir
     private int currentPoint = -1;
@@ -36,7 +41,8 @@ public class Robot extends AdvancedRobot {
         obstacles = new ArrayList<>();
         inimigos = new HashMap<>();
         conf = new UIConfiguration((int) getBattleFieldWidth(), (int) getBattleFieldHeight() , obstacles);
-
+        turn = 0;
+        count = 0;
         while(true){
             if (currentPoint >= 0) {
                 IPoint ponto = points.get(currentPoint);
@@ -44,12 +50,18 @@ public class Robot extends AdvancedRobot {
                 if (Utils.getDistance(this, ponto.getX(), ponto.getY()) < 2){
                     currentPoint++;
                     //se chegou ao fim do caminho
-                    if (currentPoint >= points.size())
+                    if (currentPoint >= points.size()) {
                         currentPoint = -1;
+                        count = 0;
+                    }
                 }
-
                 advancedRobotGoTo(this, ponto.getX(), ponto.getY());
 
+            }else{
+                if(count==0) {
+                    turnGunRight(360);
+                    count++;
+                }
             }
             this.execute();
         }
@@ -76,6 +88,19 @@ public class Robot extends AdvancedRobot {
     public void onScannedRobot(ScannedRobotEvent event) {
         super.onScannedRobot(event);
 
+        double gunTurnAmt = normalRelativeAngleDegrees(event.getBearing() + (getHeading() - getRadarHeading()));
+        turnGunRight(gunTurnAmt);
+        fire(3);
+
+        // Our target is too close!  Back up.
+        if (event.getDistance() < 100) {
+            if (event.getBearing() > -90 && event.getBearing() <= 90) {
+                back(40);
+            } else {
+                ahead(40);
+            }
+        }
+
         Bullet b = this.fireBullet(3);
         if(b == null)
             System.out.println("Não disparei");
@@ -85,8 +110,8 @@ public class Robot extends AdvancedRobot {
         System.out.println("Enemy spotted: "+event.getName());
 
         Point2D.Double ponto = getEnemyCoordinates(this, event.getBearing(), event.getDistance());
-        ponto.x -= this.getWidth()*2.5 / 2;
-        ponto.y -= this.getHeight()*2.5 / 2;
+        ponto.x += this.getWidth()*2.5/2;
+        ponto.y += this.getHeight()*2.5/2;
 
         Rectangle rect = new Rectangle((int)ponto.x, (int)ponto.y, (int)(this.getWidth()*2.5), (int)(this.getHeight()*2.5));
 
@@ -95,6 +120,12 @@ public class Robot extends AdvancedRobot {
 
         obstacles.add(rect);
         inimigos.put(event.getName(), rect);
+
+
+      /*  if(currentPoint>=0)
+            calculatePath(mouseEvent); */
+
+
         ef.addScanned(event);
         //System.out.println("Enemies at:");
         //obstacles.forEach(x -> System.out.println(x));
@@ -126,18 +157,21 @@ public class Robot extends AdvancedRobot {
     @Override
     public void onMouseClicked(MouseEvent e) {
         super.onMouseClicked(e);
+        mouseEvent = e;
+        calculatePath(e);
+    }
 
+    private void calculatePath(MouseEvent e){
         IPoint startpoint = new Point((int) this.getX(), (int) this.getY());
         IPoint endpoint = new Point( e.getX(), e.getY());
-        System.out.println(startpoint+ "\n"+ endpoint);
-
+        //System.out.println(startpoint+ "\n"+ endpoint);
         conf.setStart(startpoint);
         conf.setEnd(endpoint);
-
         AG geneticalgorithm = new AG(conf);
         Cromossoma best = geneticalgorithm.run();
         points = best.getPoints(); // Carrega os pontos da melhor solução encontrada
-        System.out.println(points);
+        System.out.println("Obstacles: "+obstacles);
+        System.out.println("PONTOS: " + points);
         currentPoint = 0;
         this.execute();
     }
@@ -177,12 +211,13 @@ public class Robot extends AdvancedRobot {
         double targetAngle = robocode.util.Utils.normalRelativeAngle(angleToTarget - Math.toRadians(robot.getHeading()));
         double distance = Math.hypot(x, y);
         double turnAngle = Math.atan(Math.tan(targetAngle));
-        System.out.println(turnAngle);
+        //System.out.println(turnAngle);
         robot.setTurnRight(Math.toDegrees(turnAngle));
         if (targetAngle == turnAngle)
             robot.setAhead(distance);
         else
             robot.setBack(distance);
+
         robot.execute();
     }
 
