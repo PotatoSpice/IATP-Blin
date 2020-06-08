@@ -15,6 +15,7 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
+import java.util.Random;
 
 import static robocode.util.Utils.normalRelativeAngleDegrees;
 
@@ -29,7 +30,7 @@ public class Robot extends AdvancedRobot {
     private double turn;
     private int count;
     private MouseEvent mouseEvent = null;
-
+    private int moveDirection = 1;
     //variável que contém o ponto atual para o qual o robot se está a dirigir
     private int currentPoint = -1;
 
@@ -84,22 +85,11 @@ public class Robot extends AdvancedRobot {
         }
     }
 
-    @Override
     public void onScannedRobot(ScannedRobotEvent event) {
         super.onScannedRobot(event);
 
         double gunTurnAmt = normalRelativeAngleDegrees(event.getBearing() + (getHeading() - getRadarHeading()));
         turnGunRight(gunTurnAmt);
-        fire(3);
-
-        // Our target is too close!  Back up.
-        if (event.getDistance() < 100) {
-            if (event.getBearing() > -90 && event.getBearing() <= 90) {
-                back(40);
-            } else {
-                ahead(40);
-            }
-        }
 
         Bullet b = this.fireBullet(3);
         if(b == null)
@@ -110,26 +100,29 @@ public class Robot extends AdvancedRobot {
         System.out.println("Enemy spotted: "+event.getName());
 
         Point2D.Double ponto = getEnemyCoordinates(this, event.getBearing(), event.getDistance());
-        ponto.x += this.getWidth()*2.5/2;
-        ponto.y += this.getHeight()*2.5/2;
+        ponto.x -= this.getWidth()*2.5 / 2;
+        ponto.y -= this.getHeight()*2.5 / 2;
 
         Rectangle rect = new Rectangle((int)ponto.x, (int)ponto.y, (int)(this.getWidth()*2.5), (int)(this.getHeight()*2.5));
+
+        if (event.getDistance() < 100) {
+            if (event.getBearing() > -90 && event.getBearing() <= 90) {
+                back(40);
+            } else {
+                ahead(40);
+            }
+        }
 
         if (inimigos.containsKey(event.getName())) //se já existe um retângulo deste inimigo
             obstacles.remove(inimigos.get(event.getName()));//remover da lista de retângulos
 
         obstacles.add(rect);
         inimigos.put(event.getName(), rect);
-
-
-      /*  if(currentPoint>=0)
-            calculatePath(mouseEvent); */
-
-
-        ef.addScanned(event);
+        scan();
         //System.out.println("Enemies at:");
         //obstacles.forEach(x -> System.out.println(x));
     }
+
 
     @Override
     public void onRobotDeath(RobotDeathEvent event) {
@@ -137,7 +130,6 @@ public class Robot extends AdvancedRobot {
         Rectangle rect = inimigos.get(event.getName());
         obstacles.remove(rect);
         inimigos.remove(event.getName());
-
     }
 
     /**
@@ -180,11 +172,34 @@ public class Robot extends AdvancedRobot {
     @Override
     public void onBulletHit(BulletHitEvent event) {
         super.onBulletHit(event);
-        //TODO: usar este método sempre que acertam num robot
-
+        Bullet b = this.fireBullet(3);
+        if(b == null)
+            System.out.println("Não disparei");
+        else
+            System.out.println("Disparei ao "+event.getName());
         ef.addHit(event);
     }
 
+    @Override
+    public void onHitByBullet(HitByBulletEvent e) {
+        super.onHitByBullet(e);
+        setAhead(70*moveDirection);
+        turnRadarRight(360);
+    }
+
+    @Override
+    public void onHitWall(HitWallEvent event) {
+        super.onHitWall(event);
+        turnRadarRight(360);
+        moveDirection *= -1;
+        setAhead(50*moveDirection - event.getBearing());
+    }
+
+    @Override
+    public void onBulletMissed(BulletMissedEvent event) {
+        super.onBulletMissed(event);
+        turnRadarRight(360);
+    }
 
     //TODO: override deste método
     @Override
