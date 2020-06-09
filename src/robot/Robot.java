@@ -25,19 +25,18 @@ public class Robot extends AdvancedRobot {
 
     private class Dados{
         String validationName;
-        String targetName = null;
+        int hit = 0;
         double power;
         double distance;
 
-        public Dados(String validationName, String targetName, double power, double distance) {
+        public Dados(String validationName, double power, double distance) {
             this.validationName = validationName;
-            this.targetName = targetName;
             this.power = power;
             this.distance = distance;
         }
 
         public String toString(){
-            return validationName + ";" + targetName + ";"+power +";"+distance;
+            return validationName + ";" + hit+ ";"+power +";"+distance;
         }
 
     }
@@ -126,7 +125,7 @@ public class Robot extends AdvancedRobot {
             System.out.println("Não disparei");
         else {
             System.out.println("Disparei ao " + event.getName());
-            balasLancadas.put(b, new Dados(event.getName(), b.getVictim(), b.getPower(), event.getDistance()));
+            balasLancadas.put(b, new Dados(event.getName(), b.getPower(), event.getDistance()));
         }
 
         System.out.println("Enemy spotted: "+event.getName());
@@ -206,7 +205,7 @@ public class Robot extends AdvancedRobot {
         super.onBulletHit(event);
         scan();
         Dados dados = balasLancadas.get(event.getBullet());
-        dados.targetName = event.getBullet().getVictim();
+        dados.hit = 1;
         balasLancadas.replace(event.getBullet(), dados);
         System.out.println(dados);
         ef.addHit(event);
@@ -310,7 +309,7 @@ public class Robot extends AdvancedRobot {
 
     public boolean dataToCSV(){
         try {
-            FileWriter stats = new FileWriter("D://GeneralStuff//robotsData.csv", true);
+            FileWriter stats = new FileWriter("D://GeneralStuff//robotFiringData.csv", true);
             BufferedWriter br = new BufferedWriter(stats);
             Iterator it = balasLancadas.entrySet().iterator();
             while(it.hasNext()){
