@@ -12,6 +12,7 @@ import utils.Utils;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
+import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
@@ -114,9 +115,9 @@ public class Robot extends AdvancedRobot {
         turnGunRight(gunTurnAmt);
         Bullet b;
         boolean fired = false;
-        if(event.getDistance()<50)
+        if(event.getDistance()<150)
              b = this.fireBullet(5);
-        else if (event.getDistance()<120)
+        else if (event.getDistance()<270)
             b = this.fireBullet(3);
         else
             b = this.fireBullet(2);
@@ -235,11 +236,16 @@ public class Robot extends AdvancedRobot {
         scan();
     }
 
+    @Override
+    public void onRoundEnded(RoundEndedEvent event) {
+        super.onRoundEnded(event);
+        dataToCSV();
+    }
+
     //TODO: override deste método
     @Override
     public void onBattleEnded(BattleEndedEvent event) {
         super.onBattleEnded(event);
-        dataToCSV();
         //TODO: usar este método no final da batalha
         // ef.submit(event.getResults());
     }
@@ -304,14 +310,15 @@ public class Robot extends AdvancedRobot {
 
     public boolean dataToCSV(){
         try {
-            FileWriter stats = new FileWriter("D://GeneralStuff//robotsData.csv");
-            stats.write("validationName;targetName;power;distance\n");
+            FileWriter stats = new FileWriter("D://GeneralStuff//robotsData.csv", true);
+            BufferedWriter br = new BufferedWriter(stats);
             Iterator it = balasLancadas.entrySet().iterator();
             while(it.hasNext()){
                 Map.Entry pair = (Map.Entry)it.next();
                 Dados dados = balasLancadas.get(pair.getKey());
-                stats.write(dados.toString()+"\n");
+                br.write(dados.toString()+"\n");
             }
+            br.close();
             stats.close();
             return true;
         } catch (IOException e) {
