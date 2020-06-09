@@ -12,15 +12,37 @@ import utils.Utils;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
 import java.util.List;
-import java.util.HashMap;
-import java.util.Random;
 
 import static robocode.util.Utils.normalRelativeAngleDegrees;
 
 
 public class Robot extends AdvancedRobot {
+
+    private class Dados{
+        String validationName;
+        String targetName = null;
+        double power;
+        double distance;
+
+        public Dados(String validationName, String targetName, double power, double distance) {
+            this.validationName = validationName;
+            this.targetName = targetName;
+            this.power = power;
+            this.distance = distance;
+        }
+
+        public String toString(){
+            return validationName + ";" + targetName + ";"+power +";"+distance;
+        }
+
+    }
+
+    HashMap<Bullet, Dados> balasLancadas = new HashMap<>();
+
     EvaluateFire ef;
 
     private List<Rectangle> obstacles;
@@ -90,12 +112,21 @@ public class Robot extends AdvancedRobot {
 
         double gunTurnAmt = normalRelativeAngleDegrees(event.getBearing() + (getHeading() - getRadarHeading()));
         turnGunRight(gunTurnAmt);
+        Bullet b;
+        boolean fired = false;
+        if(event.getDistance()<50)
+             b = this.fireBullet(5);
+        else if (event.getDistance()<120)
+            b = this.fireBullet(3);
+        else
+            b = this.fireBullet(2);
 
-        Bullet b = this.fireBullet(3);
         if(b == null)
             System.out.println("Não disparei");
-        else
-            System.out.println("Disparei ao "+event.getName());
+        else {
+            System.out.println("Disparei ao " + event.getName());
+            balasLancadas.put(b, new Dados(event.getName(), b.getVictim(), b.getPower(), event.getDistance()));
+        }
 
         System.out.println("Enemy spotted: "+event.getName());
 
@@ -104,7 +135,7 @@ public class Robot extends AdvancedRobot {
         ponto.y -= this.getHeight()*2.5 / 2;
 
         Rectangle rect = new Rectangle((int)ponto.x, (int)ponto.y, (int)(this.getWidth()*2.5), (int)(this.getHeight()*2.5));
-
+        count = 0;
         if (event.getDistance() < 100) {
             if (event.getBearing() > -90 && event.getBearing() <= 90) {
                 back(40);
@@ -172,11 +203,11 @@ public class Robot extends AdvancedRobot {
     @Override
     public void onBulletHit(BulletHitEvent event) {
         super.onBulletHit(event);
-        Bullet b = this.fireBullet(3);
-        if(b == null)
-            System.out.println("Não disparei");
-        else
-            System.out.println("Disparei ao "+event.getName());
+        scan();
+        Dados dados = balasLancadas.get(event.getBullet());
+        dados.targetName = event.getBullet().getVictim();
+        balasLancadas.replace(event.getBullet(), dados);
+        System.out.println(dados);
         ef.addHit(event);
     }
 
@@ -184,28 +215,31 @@ public class Robot extends AdvancedRobot {
     public void onHitByBullet(HitByBulletEvent e) {
         super.onHitByBullet(e);
         setAhead(70*moveDirection);
-        turnRadarRight(360);
+        count = 0; 
     }
 
     @Override
     public void onHitWall(HitWallEvent event) {
         super.onHitWall(event);
-        turnRadarRight(360);
+        turnGunRight(360);
         moveDirection *= -1;
-        setAhead(50*moveDirection - event.getBearing());
+        setAhead(50*moveDirection);
+
     }
 
     @Override
     public void onBulletMissed(BulletMissedEvent event) {
         super.onBulletMissed(event);
-        turnRadarRight(360);
+        Dados dados = balasLancadas.get(event.getBullet());
+        System.out.println(dados);
+        scan();
     }
 
     //TODO: override deste método
     @Override
     public void onBattleEnded(BattleEndedEvent event) {
         super.onBattleEnded(event);
-
+        dataToCSV();
         //TODO: usar este método no final da batalha
         // ef.submit(event.getResults());
     }
@@ -268,5 +302,22 @@ public class Robot extends AdvancedRobot {
         g.fillPolygon(xPoints, yPoints, 4);
     }
 
+    public boolean dataToCSV(){
+        try {
+            FileWriter stats = new FileWriter("D://GeneralStuff//robotsData.csv");
+            stats.write("validationName;targetName;power;distance\n");
+            Iterator it = balasLancadas.entrySet().iterator();
+            while(it.hasNext()){
+                Map.Entry pair = (Map.Entry)it.next();
+                Dados dados = balasLancadas.get(pair.getKey());
+                stats.write(dados.toString()+"\n");
+            }
+            stats.close();
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
 }
