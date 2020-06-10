@@ -28,15 +28,19 @@ public class Robot extends AdvancedRobot {
         int hit = 0;
         double power;
         double distance;
+        double bearing;
+        double heading;
 
-        public Dados(String validationName, double power, double distance) {
+        public Dados(String validationName, double power, double distance, double bearing, double heading) {
             this.validationName = validationName;
             this.power = power;
             this.distance = distance;
+            this.bearing = bearing;
+            this.heading = heading;
         }
 
         public String toString(){
-            return validationName + ";" + hit+ ";"+power +";"+distance;
+            return validationName + ";" + hit+ ";"+power +";"+distance+";"+bearing+";"+heading;
         }
 
     }
@@ -125,7 +129,7 @@ public class Robot extends AdvancedRobot {
             System.out.println("Não disparei");
         else {
             System.out.println("Disparei ao " + event.getName());
-            balasLancadas.put(b, new Dados(event.getName(), b.getPower(), event.getDistance()));
+            balasLancadas.put(b, new Dados(event.getName(), b.getPower(), event.getDistance(), event.getBearing(), event.getHeading()));
         }
 
         System.out.println("Enemy spotted: "+event.getName());

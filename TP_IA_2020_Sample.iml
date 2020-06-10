@@ -27,5 +27,6 @@
     </orderEntry>
     <orderEntry type="library" name="TP_IA_2020_Resources" level="project" />
     <orderEntry type="library" name="robocode" level="project" />
+    <orderEntry type="library" name="h2o-genmodel" level="project" />
   </component>
 </module>
