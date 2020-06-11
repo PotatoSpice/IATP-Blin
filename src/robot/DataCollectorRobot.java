@@ -2,11 +2,6 @@ package robot;
 
 import evolution.AG;
 import evolution.Cromossoma;
-import hex.genmodel.MojoModel;
-import hex.genmodel.easy.EasyPredictModelWrapper;
-import hex.genmodel.easy.RowData;
-import hex.genmodel.easy.exception.PredictException;
-import hex.genmodel.easy.prediction.RegressionModelPrediction;
 import impl.UIConfiguration;
 import interf.IPoint;
 import impl.Point;
@@ -26,9 +21,31 @@ import java.util.List;
 import static robocode.util.Utils.normalRelativeAngleDegrees;
 
 
-public class Robot extends AdvancedRobot {
+public class DataCollectorRobot extends AdvancedRobot {
 
-    EvaluateFire ef;
+    private class Dados{
+        String validationName;
+        int hit = 0;
+        double power;
+        double distance;
+        double bearing;
+        double heading;
+
+        public Dados(String validationName, double power, double distance, double bearing, double heading) {
+            this.validationName = validationName;
+            this.power = power;
+            this.distance = distance;
+            this.bearing = bearing;
+            this.heading = heading;
+        }
+
+        public String toString(){
+            return validationName + ";" + hit+ ";"+power +";"+distance+";"+bearing+";"+heading;
+        }
+
+    }
+
+    HashMap<Bullet, Dados> balasLancadas = new HashMap<>();
 
     private List<Rectangle> obstacles;
     public static UIConfiguration conf;
@@ -40,18 +57,11 @@ public class Robot extends AdvancedRobot {
     private int moveDirection = 1;
     //variável que contém o ponto atual para o qual o robot se está a dirigir
     private int currentPoint = -1;
-    private EasyPredictModelWrapper model;
 
     @Override
     public void run() {
         super.run();
-        try {
-            model = new EasyPredictModelWrapper(MojoModel.load("C:\\Users\\rodri\\OneDrive\\Documents\\IAStuff\\modelExperiment.zip"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         System.out.println("BLIN MACHINE IS RAD");
-        ef = new EvaluateFire("Blin Machine");
         obstacles = new ArrayList<>();
         inimigos = new HashMap<>();
         conf = new UIConfiguration((int) getBattleFieldWidth(), (int) getBattleFieldHeight() , obstacles);
@@ -101,47 +111,25 @@ public class Robot extends AdvancedRobot {
     public void onScannedRobot(ScannedRobotEvent event) {
         super.onScannedRobot(event);
 
-        RowData data = new RowData();
-        data.put("validationName", event.getName());
-        data.put("distance", event.getDistance());
-        data.put("bearing", event.getBearing());
-        data.put("heading", event.getHeading());
-
         double gunTurnAmt = normalRelativeAngleDegrees(event.getBearing() + (getHeading() - getRadarHeading()));
         turnGunRight(gunTurnAmt);
         Bullet b;
-
+        boolean fired = false;
         if(event.getDistance()<150)
-            data.put("power", 5.0);
+            b = this.fireBullet(5);
         else if (event.getDistance()<270)
-            data.put("power", 3.0);
+            b = this.fireBullet(3);
         else
-            data.put("power", 2.0);
-
-        double value = 0.0;
-        try {
-            RegressionModelPrediction prediction = model.predictRegression(data);
-            value = prediction.value;
-        } catch (PredictException e) {
-            e.printStackTrace();
-        }
-
-        //System.out.println(value);
-        if(value >=0.7) b = this.fireBullet(8);
-        else if(value>=0.4)
-            if(event.getDistance()<150) b = this.fireBullet(5);
-            else if (event.getDistance()<270) b = this.fireBullet(3);
-            else b = this.fireBullet(2);
-        else if (value>=0.3) b= this.fireBullet(2);
-        else b = null;
+            b = this.fireBullet(2);
 
         if(b == null)
             System.out.println("Não disparei");
         else {
             System.out.println("Disparei ao " + event.getName());
+            balasLancadas.put(b, new Dados(event.getName(), b.getPower(), event.getDistance(), event.getBearing(), event.getHeading()));
         }
 
-        //System.out.println("Enemy spotted: "+event.getName());
+        System.out.println("Enemy spotted: "+event.getName());
 
         Point2D.Double ponto = getEnemyCoordinates(this, event.getBearing(), event.getDistance());
         ponto.x -= this.getWidth()*2.5 / 2;
@@ -162,7 +150,6 @@ public class Robot extends AdvancedRobot {
 
         obstacles.add(rect);
         inimigos.put(event.getName(), rect);
-        ef.addScanned(event);
         scan();
         //System.out.println("Enemies at:");
         //obstacles.forEach(x -> System.out.println(x));
@@ -185,7 +172,7 @@ public class Robot extends AdvancedRobot {
      * @param distance distância ao alvo
      * @return coordenadas do alvo
      * */
-    public static Point2D.Double getEnemyCoordinates(Robot robot, double bearing, double distance){
+    public static Point2D.Double getEnemyCoordinates(DataCollectorRobot robot, double bearing, double distance){
         double angle = Math.toRadians((robot.getHeading() + bearing) % 360);
 
         return new Point2D.Double((robot.getX() + Math.sin(angle) * distance), (robot.getY() + Math.cos(angle) * distance));
@@ -201,6 +188,7 @@ public class Robot extends AdvancedRobot {
     private void calculatePath(MouseEvent e){
         IPoint startpoint = new Point((int) this.getX(), (int) this.getY());
         IPoint endpoint = new Point( e.getX(), e.getY());
+        //System.out.println(startpoint+ "\n"+ endpoint);
         conf.setStart(startpoint);
         conf.setEnd(endpoint);
         AG geneticalgorithm = new AG(conf);
@@ -216,15 +204,18 @@ public class Robot extends AdvancedRobot {
     @Override
     public void onBulletHit(BulletHitEvent event) {
         super.onBulletHit(event);
-        ef.addHit(event);
         scan();
+        Dados dados = balasLancadas.get(event.getBullet());
+        dados.hit = 1;
+        balasLancadas.replace(event.getBullet(), dados);
+        System.out.println(dados);
     }
 
     @Override
     public void onHitByBullet(HitByBulletEvent e) {
         super.onHitByBullet(e);
         setAhead(70*moveDirection);
-        count = 0; 
+        count = 0;
     }
 
     @Override
@@ -239,19 +230,20 @@ public class Robot extends AdvancedRobot {
     @Override
     public void onBulletMissed(BulletMissedEvent event) {
         super.onBulletMissed(event);
+        Dados dados = balasLancadas.get(event.getBullet());
+        System.out.println(dados);
         scan();
     }
 
     @Override
     public void onRoundEnded(RoundEndedEvent event) {
         super.onRoundEnded(event);
+        dataToCSV();
     }
 
-    //TODO: override deste método
     @Override
     public void onBattleEnded(BattleEndedEvent event) {
         super.onBattleEnded(event);
-        ef.submit(event.getResults());
     }
 
     /**
@@ -311,4 +303,24 @@ public class Robot extends AdvancedRobot {
 
         g.fillPolygon(xPoints, yPoints, 4);
     }
+
+    public boolean dataToCSV(){
+        try {
+            FileWriter stats = new FileWriter("D://GeneralStuff//robotFiringData.csv", true);
+            BufferedWriter br = new BufferedWriter(stats);
+            Iterator it = balasLancadas.entrySet().iterator();
+            while(it.hasNext()){
+                Map.Entry pair = (Map.Entry)it.next();
+                Dados dados = balasLancadas.get(pair.getKey());
+                br.write(dados.toString()+"\n");
+            }
+            br.close();
+            stats.close();
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 }
