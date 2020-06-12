@@ -127,7 +127,7 @@ public class Robot extends AdvancedRobot {
         }
 
         //System.out.println(value);
-        if(value >=0.7) b = this.fireBullet(8);
+        if(value >=0.7) b = this.fireBullet(10);
         else if(value>=0.4)
             if(event.getDistance()<150) b = this.fireBullet(5);
             else if (event.getDistance()<270) b = this.fireBullet(3);
@@ -149,13 +149,13 @@ public class Robot extends AdvancedRobot {
 
         Rectangle rect = new Rectangle((int)ponto.x, (int)ponto.y, (int)(this.getWidth()*2.5), (int)(this.getHeight()*2.5));
         count = 0;
-        if (event.getDistance() < 100) {
+        /*if (event.getDistance() < 100) {
             if (event.getBearing() > -90 && event.getBearing() <= 90) {
                 back(40);
             } else {
                 ahead(40);
             }
-        }
+        }*/
 
         if (inimigos.containsKey(event.getName())) //se já existe um retângulo deste inimigo
             obstacles.remove(inimigos.get(event.getName()));//remover da lista de retângulos
@@ -223,7 +223,7 @@ public class Robot extends AdvancedRobot {
     @Override
     public void onHitByBullet(HitByBulletEvent e) {
         super.onHitByBullet(e);
-        setAhead(70*moveDirection);
+        setAhead(90*moveDirection);
         count = 0; 
     }
 
@@ -232,7 +232,7 @@ public class Robot extends AdvancedRobot {
         super.onHitWall(event);
         turnGunRight(360);
         moveDirection *= -1;
-        setAhead(50*moveDirection);
+        setAhead(90*moveDirection);
 
     }
 
@@ -247,7 +247,6 @@ public class Robot extends AdvancedRobot {
         super.onRoundEnded(event);
     }
 
-    //TODO: override deste método
     @Override
     public void onBattleEnded(BattleEndedEvent event) {
         super.onBattleEnded(event);
@@ -270,7 +269,6 @@ public class Robot extends AdvancedRobot {
         double targetAngle = robocode.util.Utils.normalRelativeAngle(angleToTarget - Math.toRadians(robot.getHeading()));
         double distance = Math.hypot(x, y);
         double turnAngle = Math.atan(Math.tan(targetAngle));
-        //System.out.println(turnAngle);
         robot.setTurnRight(Math.toDegrees(turnAngle));
         if (targetAngle == turnAngle)
             robot.setAhead(distance);
