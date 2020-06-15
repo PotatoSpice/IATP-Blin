@@ -17,8 +17,6 @@ import utils.Utils;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
@@ -46,7 +44,7 @@ public class Robot extends AdvancedRobot {
     public void run() {
         super.run();
         try {
-            model = new EasyPredictModelWrapper(MojoModel.load("C:\\Users\\rodri\\OneDrive\\Documents\\IAStuff\\modelExperiment.zip"));
+            model = new EasyPredictModelWrapper(MojoModel.load("C:\\Users\\rodri\\OneDrive\\Documents\\IAStuff\\newModel.zip"));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -128,7 +126,7 @@ public class Robot extends AdvancedRobot {
 
         //System.out.println(value);
         if(value >=0.7) b = this.fireBullet(10);
-        else if(value>=0.4)
+        else if(value>=0.5)
             if(event.getDistance()<150) b = this.fireBullet(5);
             else if (event.getDistance()<270) b = this.fireBullet(3);
             else b = this.fireBullet(2);
@@ -163,7 +161,6 @@ public class Robot extends AdvancedRobot {
         obstacles.add(rect);
         inimigos.put(event.getName(), rect);
         ef.addScanned(event);
-        scan();
         //System.out.println("Enemies at:");
         //obstacles.forEach(x -> System.out.println(x));
     }
@@ -194,8 +191,10 @@ public class Robot extends AdvancedRobot {
     @Override
     public void onMouseClicked(MouseEvent e) {
         super.onMouseClicked(e);
+        clearAllEvents();
         mouseEvent = e;
         calculatePath(e);
+        scan();
     }
 
     private void calculatePath(MouseEvent e){

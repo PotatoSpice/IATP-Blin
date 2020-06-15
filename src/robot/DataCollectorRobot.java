@@ -30,17 +30,22 @@ public class DataCollectorRobot extends AdvancedRobot {
         double distance;
         double bearing;
         double heading;
+        double robotHeading;
+        double gunHearing;
+        int moving;
 
-        public Dados(String validationName, double power, double distance, double bearing, double heading) {
+        public Dados(String validationName, double power, double distance, double bearing, double heading, double robotHeading, double gunHearing, int moving) {
             this.validationName = validationName;
             this.power = power;
             this.distance = distance;
             this.bearing = bearing;
             this.heading = heading;
+            this.gunHearing= gunHearing;
+            this.robotHeading = robotHeading;
+            this.moving = moving;
         }
-
         public String toString(){
-            return validationName + ";" + hit+ ";"+power +";"+distance+";"+bearing+";"+heading;
+            return validationName + ";" + hit+ ";"+power +";"+distance+";"+bearing+";"+heading+";"+robotHeading+";"+gunHearing+";"+moving;
         }
 
     }
@@ -114,7 +119,6 @@ public class DataCollectorRobot extends AdvancedRobot {
         double gunTurnAmt = normalRelativeAngleDegrees(event.getBearing() + (getHeading() - getRadarHeading()));
         turnGunRight(gunTurnAmt);
         Bullet b;
-        boolean fired = false;
         if(event.getDistance()<150)
             b = this.fireBullet(5);
         else if (event.getDistance()<270)
@@ -126,7 +130,16 @@ public class DataCollectorRobot extends AdvancedRobot {
             System.out.println("Não disparei");
         else {
             System.out.println("Disparei ao " + event.getName());
-            balasLancadas.put(b, new Dados(event.getName(), b.getPower(), event.getDistance(), event.getBearing(), event.getHeading()));
+
+            double re = this.getDistanceRemaining();
+            int moving;
+            if(re==0){
+                moving = 0;
+            }else{
+                moving = 1;
+            }
+
+            balasLancadas.put(b, new Dados(event.getName(), b.getPower(), event.getDistance(), event.getBearing(), event.getHeading(), this.getHeading(), this.getGunHeading(), moving));
         }
 
         System.out.println("Enemy spotted: "+event.getName());
@@ -136,21 +149,12 @@ public class DataCollectorRobot extends AdvancedRobot {
         ponto.y -= this.getHeight()*2.5 / 2;
 
         Rectangle rect = new Rectangle((int)ponto.x, (int)ponto.y, (int)(this.getWidth()*2.5), (int)(this.getHeight()*2.5));
-        count = 0;
-        if (event.getDistance() < 100) {
-            if (event.getBearing() > -90 && event.getBearing() <= 90) {
-                back(40);
-            } else {
-                ahead(40);
-            }
-        }
 
         if (inimigos.containsKey(event.getName())) //se já existe um retângulo deste inimigo
             obstacles.remove(inimigos.get(event.getName()));//remover da lista de retângulos
 
         obstacles.add(rect);
         inimigos.put(event.getName(), rect);
-        scan();
         //System.out.println("Enemies at:");
         //obstacles.forEach(x -> System.out.println(x));
     }
@@ -306,7 +310,7 @@ public class DataCollectorRobot extends AdvancedRobot {
 
     public boolean dataToCSV(){
         try {
-            FileWriter stats = new FileWriter("D://GeneralStuff//robotFiringData.csv", true);
+            FileWriter stats = new FileWriter("D://GeneralStuff//robotFiringData2.csv", true);
             BufferedWriter br = new BufferedWriter(stats);
             Iterator it = balasLancadas.entrySet().iterator();
             while(it.hasNext()){
