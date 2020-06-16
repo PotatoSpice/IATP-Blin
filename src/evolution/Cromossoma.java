@@ -54,6 +54,7 @@ public class Cromossoma implements Comparable<Cromossoma> {
         totaldist = 0.0;
     }
 
+
     public Cromossoma(IUIConfiguration conf){
         this.conf = conf;
         rectangles = this.conf.getObstacles();
@@ -262,11 +263,15 @@ public class Cromossoma implements Comparable<Cromossoma> {
     public double getFitness() {
         double value = 0.0;
 
+        //Penalização por colisões
         if (colisionChecker()) {
             value = colisionWeight * colisionN;
         }
 
-        value = value + getDistance() + (100*points.size());
+        //Penalização por distancia do trajeto
+        value = value + getDistance();
+        //Penalização por número de pontos/vértices do trajeto
+        value = value + (100*points.size());
 
         return value;
     }
