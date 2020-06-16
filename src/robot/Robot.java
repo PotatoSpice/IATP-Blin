@@ -232,7 +232,8 @@ public class Robot extends AdvancedRobot {
     public void onHitByBullet(HitByBulletEvent e) {
         super.onHitByBullet(e);
         setAhead(90*moveDirection);
-        count = 0; 
+        count = 0;
+        scan();
     }
 
     @Override
