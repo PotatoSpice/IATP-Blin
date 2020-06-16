@@ -20,8 +20,6 @@ public class Cromossoma implements Comparable<Cromossoma> {
 
     public static IUIConfiguration conf;
 
-    public int map = 6;
-
     static {
         try {
             conf = Maps.getMap(6);
@@ -34,7 +32,7 @@ public class Cromossoma implements Comparable<Cromossoma> {
 
     private int maxTam = 5;
     private int minTam = 0;
-    private int maxMap = 600;
+    private int maxMap = dataConf.map_size;
     private int minMap = 0;
     private int colisionN = 0;
 
@@ -130,7 +128,7 @@ public class Cromossoma implements Comparable<Cromossoma> {
                     newx = numeroAleatorio(minMap, maxMap);
                     newy = numeroAleatorio(minMap, maxMap);
                     //System.out.println(newx + "; "+ newy);
-                } while (newx <= 0 || newy <= 0 || newx >= 600 || newy >= 600 || rand == 0);
+                } while (newx <= 0 || newy <= 0 || newx >= maxMap || newy >= maxMap || rand == 0);
                 Point newpoint = new Point(newx, newy);
                 novo.points.set(rand, newpoint);
                 //System.out.println(points.get(rand));

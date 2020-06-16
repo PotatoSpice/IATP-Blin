@@ -34,7 +34,7 @@ public class Cromossoma implements Comparable<Cromossoma> {
 
     private int maxTam = 5;
     private int minTam = 0;
-    private int maxMap = 600;
+    private int maxMap = Conf.map_size;
     private int minMap = 0;
     private int colisionN = 0;
 

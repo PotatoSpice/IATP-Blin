@@ -9,4 +9,5 @@ public class Conf {
     static int cross_limit = 8;
     static int mutation_limit = 8;
     static int random_limit = 3;
+    static int map_size = 600;
 }

@@ -108,7 +108,16 @@ public class Robot extends AdvancedRobot {
         double gunTurnAmt = normalRelativeAngleDegrees(event.getBearing() + (getHeading() - getRadarHeading()));
         turnGunRight(gunTurnAmt);
         Bullet b;
-
+        double re = this.getDistanceRemaining();
+        int moving;
+        if(re==0){
+            moving = 0;
+        }else{
+            moving = 1;
+        }
+        data.put("moving", (double)moving);
+        data.put("gunHeading", this.getGunHeading());
+        data.put("robotHeading", this.getHeading());
         if(event.getDistance()<150)
             data.put("power", 5.0);
         else if (event.getDistance()<270)
@@ -132,12 +141,12 @@ public class Robot extends AdvancedRobot {
             else b = this.fireBullet(2);
         else if (value>=0.3) b= this.fireBullet(2);
         else b = null;
-
-        if(b == null)
+        System.out.println(value);
+      /*  if(b == null)
             System.out.println("Não disparei");
         else {
             System.out.println("Disparei ao " + event.getName());
-        }
+        } */
 
         //System.out.println("Enemy spotted: "+event.getName());
 
@@ -249,7 +258,7 @@ public class Robot extends AdvancedRobot {
     @Override
     public void onBattleEnded(BattleEndedEvent event) {
         super.onBattleEnded(event);
-        ef.submit(event.getResults());
+        //ef.submit(event.getResults());
     }
 
     /**

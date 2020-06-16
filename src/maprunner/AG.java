@@ -1,6 +1,5 @@
 package maprunner;
 
-import interf.IUIConfiguration;
 import performance.Evaluate;
 
 import java.awt.*;
@@ -18,7 +17,6 @@ public class AG {
     private double last_fitness_value = 0;
     private int convergence_counter = 0;
     private int iteration_counter = 0;
-    private IUIConfiguration uiconf;
 
     public AG (){
 

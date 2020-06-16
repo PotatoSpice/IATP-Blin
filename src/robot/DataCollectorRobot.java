@@ -56,7 +56,6 @@ public class DataCollectorRobot extends AdvancedRobot {
     public static UIConfiguration conf;
     private List<IPoint> points;
     private HashMap<String, Rectangle> inimigos; //utilizada par associar inimigos a retângulos e permitir remover retângulos de inimigos já desatualizados
-    private double turn;
     private int count;
     private MouseEvent mouseEvent = null;
     private int moveDirection = 1;
@@ -70,7 +69,6 @@ public class DataCollectorRobot extends AdvancedRobot {
         obstacles = new ArrayList<>();
         inimigos = new HashMap<>();
         conf = new UIConfiguration((int) getBattleFieldWidth(), (int) getBattleFieldHeight() , obstacles);
-        turn = 0;
         count = 0;
         while(true){
             if (currentPoint >= 0) {
