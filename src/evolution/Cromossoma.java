@@ -21,14 +21,14 @@ public class Cromossoma implements Comparable<Cromossoma> {
     public static IUIConfiguration conf;
 
     public int map = 6;
-    /*
-    static {
+
+    /*static {
         try {
             conf = Maps.getMap(6);
         } catch (Exception e) {
             e.printStackTrace();
         }
-    } */
+    }*/
 
     private Conf dataConf = new Conf();
 
