@@ -99,7 +99,7 @@ public class AG {
         }
         //submitClassification(evaluate);
          // evaluate.submit();
-        dataToCSV(best_fitness, avg_fitness);
+        //dataToCSV(best_fitness, avg_fitness);
     return bestSolutionEver;
     }
 
