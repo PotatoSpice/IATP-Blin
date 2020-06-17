@@ -45,12 +45,12 @@ public class Cromossoma implements Comparable<Cromossoma> {
     }
 
 
-    public Cromossoma(IUIConfiguration conf){
-        this.conf = conf;
-        rectangles = this.conf.getObstacles();
-        points.add(this.conf.getStart());
+    public Cromossoma(IUIConfiguration pconf){
+        conf = pconf;
+        rectangles = conf.getObstacles();
+        points.add(conf.getStart());
         this.starting();
-        points.add(this.conf.getEnd());
+        points.add(conf.getEnd());
         totaldist = 0.0;
     }
 
