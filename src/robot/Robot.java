@@ -34,7 +34,6 @@ public class Robot extends AdvancedRobot {
     private HashMap<String, Rectangle> inimigos; //utilizada par associar inimigos a retângulos e permitir remover retângulos de inimigos já desatualizados
     private double turn;
     private int count;
-    private MouseEvent mouseEvent = null;
     private int moveDirection = 1;
     //variável que contém o ponto atual para o qual o robot se está a dirigir
     private int currentPoint = -1;
@@ -201,7 +200,6 @@ public class Robot extends AdvancedRobot {
     public void onMouseClicked(MouseEvent e) {
         super.onMouseClicked(e);
         clearAllEvents();
-        mouseEvent = e;
         calculatePath(e);
         scan();
     }

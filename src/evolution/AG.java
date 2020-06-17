@@ -38,14 +38,12 @@ public class AG {
         Cromossoma bestSolutionEver;
         List<Double> best_fitness = new ArrayList<>();
         List<Double> avg_fitness = new ArrayList<>();
-        int generationCounter = 0;
         List<Cromossoma> pop;
         pop = init();
         Collections.sort(pop);
         bestSolutionEver = pop.get(0);
         best_fitness.add(pop.get(0).getFitness());
         avg_fitness.add(pop.stream().mapToDouble(x -> x.getFitness()).average().getAsDouble());
-        Evaluate evaluate =  new Evaluate(Conf.pop_size, 6, "Blin Machine");
 
         while(iteration_counter < Conf.generation_limit && convergence_counter < Conf.converence_limit) {
 
@@ -92,14 +90,10 @@ public class AG {
                 convergence_counter = 0;
                 last_fitness_value = pop.get(0).getFitness();
                 bestSolutionEver = pop.get(0);
-                evaluate = recordClassification(evaluate, bestSolutionEver, generationCounter);
                 //evaluate.addSolution(bestSolutionEver.getPoints(), generationCounter);
             }
-            generationCounter++;
         }
-        //submitClassification(evaluate);
-         // evaluate.submit();
-        //dataToCSV(best_fitness, avg_fitness);
+
     return bestSolutionEver;
     }
 
@@ -119,14 +113,5 @@ public class AG {
             e.printStackTrace();
             return false;
         }
-    }
-
-    public Evaluate recordClassification(Evaluate evaluate, Cromossoma bestCromossoma, int counter){
-        evaluate.addSolution(bestCromossoma.getPoints(), counter);
-        return evaluate;
-    }
-
-    public boolean submitClassification(Evaluate eval){
-        return eval.submit();
     }
 }

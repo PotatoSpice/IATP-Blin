@@ -22,16 +22,13 @@ public class Cromossoma implements Comparable<Cromossoma> {
 
     static {
         try {
-            conf = Maps.getMap(6);
+            conf = Maps.getMap(5);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private Conf dataConf = new Conf();
-
-    private int maxTam = 5;
-    private int minTam = 0;
     private int maxMap = dataConf.map_size;
     private int minMap = 0;
     private int colisionN = 0;
@@ -40,7 +37,6 @@ public class Cromossoma implements Comparable<Cromossoma> {
 
     private double totaldist;
 
-    protected int tam = numeroAleatorio(minTam, maxTam);
     public List<IPoint> points = new ArrayList<>();
     public List<Rectangle> rectangles;
 
@@ -49,16 +45,6 @@ public class Cromossoma implements Comparable<Cromossoma> {
         points.add(conf.getStart());
         this.starting();
         points.add(conf.getEnd());
-        totaldist = 0.0;
-    }
-
-
-    public Cromossoma(IUIConfiguration conf){
-        this.conf = conf;
-        rectangles = this.conf.getObstacles();
-        points.add(this.conf.getStart());
-        this.starting();
-        points.add(this.conf.getEnd());
         totaldist = 0.0;
     }
 
@@ -96,8 +82,8 @@ public class Cromossoma implements Comparable<Cromossoma> {
 
     public void map() {
         PathViewer pv = new PathViewer(conf);
-        pv.setFitness(9999);
-        pv.setStringPath("test");
+        pv.setFitness(getFitness());
+        pv.setStringPath("this is a test run");
         pv.paintPath(points);
     }
 
@@ -115,32 +101,18 @@ public class Cromossoma implements Comparable<Cromossoma> {
 
         if (this.colisionChecker()) {
             if (points.size() <= 3) {
-                /*newx = numeroAleatorio(minMap, maxMap);
-                newy = numeroAleatorio(minMap, maxMap);
-                int rand = 1 + random.nextInt((points.size()-2));
-                novo.points.add(rand, new Point(newx, newy));
-                novo.givePoints(); */
-                //System.out.println(novo.points.get(novo.points.size()-2));
             } else {
                 int rand;
                 do {
                     rand = random.nextInt((points.size() - 2));
                     newx = numeroAleatorio(minMap, maxMap);
                     newy = numeroAleatorio(minMap, maxMap);
-                    //System.out.println(newx + "; "+ newy);
                 } while (newx <= 0 || newy <= 0 || newx >= maxMap || newy >= maxMap || rand == 0);
                 Point newpoint = new Point(newx, newy);
                 novo.points.set(rand, newpoint);
-                //System.out.println(points.get(rand));
             }
         } else {
             if (points.size() <= 3) {
-               /* newx = numeroAleatorio(minMap, maxMap);
-                newy = numeroAleatorio(minMap, maxMap);
-                int rand = 1 + random.nextInt((points.size()-2));
-                novo.points.add(rand, new Point(newx, newy));
-                novo.givePoints(); */
-                //System.out.println(novo.points.get(novo.points.size()-2));
             } else {
                 int rand;
                 do {
@@ -150,15 +122,8 @@ public class Cromossoma implements Comparable<Cromossoma> {
                 } while (newx <= 0 || newy <= 0 || newx >= 600 || newy >= 600 || rand == 0);
                 Point newpoint = new Point(newx, newy);
                 novo.points.set(rand, newpoint);
-                //System.out.println(points.get(rand));
             }
         }
-
-       /* System.out.print("OLD:");
-        this.givePoints();
-        System.out.print("NEW:");
-        novo.givePoints(); */
-
         return novo;
     }
 

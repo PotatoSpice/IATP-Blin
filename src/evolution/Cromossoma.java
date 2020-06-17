@@ -20,16 +20,6 @@ public class Cromossoma implements Comparable<Cromossoma> {
 
     public static IUIConfiguration conf;
 
-    public int map = 6;
-
-    /*static {
-        try {
-            conf = Maps.getMap(6);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }*/
-
     private Conf dataConf = new Conf();
 
     private int maxTam = 5;
@@ -117,12 +107,7 @@ public class Cromossoma implements Comparable<Cromossoma> {
 
         if (this.colisionChecker()) {
             if (points.size() <= 3) {
-                /*newx = numeroAleatorio(minMap, maxMap);
-                newy = numeroAleatorio(minMap, maxMap);
-                int rand = 1 + random.nextInt((points.size()-2));
-                novo.points.add(rand, new Point(newx, newy));
-                novo.givePoints(); */
-                //System.out.println(novo.points.get(novo.points.size()-2));
+
             } else {
                 int rand;
                 do {
@@ -137,12 +122,7 @@ public class Cromossoma implements Comparable<Cromossoma> {
             }
         } else {
             if (points.size() <= 3) {
-               /* newx = numeroAleatorio(minMap, maxMap);
-                newy = numeroAleatorio(minMap, maxMap);
-                int rand = 1 + random.nextInt((points.size()-2));
-                novo.points.add(rand, new Point(newx, newy));
-                novo.givePoints(); */
-                //System.out.println(novo.points.get(novo.points.size()-2));
+
             } else {
                 int rand;
                 do {
@@ -155,11 +135,6 @@ public class Cromossoma implements Comparable<Cromossoma> {
                 //System.out.println(points.get(rand));
             }
         }
-
-       /* System.out.print("OLD:");
-        this.givePoints();
-        System.out.print("NEW:");
-        novo.givePoints(); */
 
         return novo;
     }
