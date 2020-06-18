@@ -135,7 +135,7 @@ public class UpgradedRobot extends AdvancedRobot {
     public void run() {
         super.run();
         try {
-            model = new EasyPredictModelWrapper(MojoModel.load("IA_ML_models/nfolds6.zip"));
+            model = new EasyPredictModelWrapper(MojoModel.load("IA_ML_models/30trees.zip"));
 
             setBodyColor(Color.red);
             setGunColor(Color.yellow);
@@ -447,7 +447,7 @@ public class UpgradedRobot extends AdvancedRobot {
     @Override
     public void onBattleEnded(BattleEndedEvent event) {
         super.onBattleEnded(event);
-        //ef.submit(event.getResults());
+        ef.submit(event.getResults());
     }
 
     /**
