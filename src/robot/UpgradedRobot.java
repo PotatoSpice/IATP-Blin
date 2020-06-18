@@ -135,7 +135,7 @@ public class UpgradedRobot extends AdvancedRobot {
     public void run() {
         super.run();
         try {
-            model = new EasyPredictModelWrapper(MojoModel.load("IA_ML_models/30trees.zip"));
+            model = new EasyPredictModelWrapper(MojoModel.load("IA_ML_models/nfolds6.zip"));
 
             setBodyColor(Color.red);
             setGunColor(Color.yellow);
@@ -181,7 +181,7 @@ public class UpgradedRobot extends AdvancedRobot {
                 // # disparar contra o inimigo
                 if (targetEnemy.exists()) {
                     // rodar o canhão
-                    double addedAngle = 0.0;
+                    /*double addedAngle = 0.0;
                     if (targetEnemy.getVelocity() > 0 && targetEnemy.getDistance() > 50) {
                         addedAngle = targetEnemy.getVelocity();
                         // enemy is going right
@@ -201,9 +201,9 @@ public class UpgradedRobot extends AdvancedRobot {
                             else
                                 addedAngle *= 1; // turn gun right a little bit
                         }
-                    }
+                    } */
                     double gunTurnAmt =
-                            normalRelativeAngleDegrees(addedAngle + targetEnemy.getBearing() + (getHeading() - getGunHeading()));
+                            normalRelativeAngleDegrees(/*addedAngle*/ + targetEnemy.getBearing() + (getHeading() - getGunHeading()));
                     setTurnGunRight(gunTurnAmt);
 
                     // disparar!
