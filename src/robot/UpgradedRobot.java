@@ -13,7 +13,6 @@ import impl.Point;
 import performance.EvaluateFire;
 import robocode.*;
 import robot.enemytracking.AdvancedEnemyBot;
-import robot.enemytracking.EnemyBot;
 import utils.Utils;
 
 import java.awt.*;
@@ -323,7 +322,7 @@ public class UpgradedRobot extends AdvancedRobot {
     @Override
     public void onBattleEnded(BattleEndedEvent event) {
         super.onBattleEnded(event);
-        //ef.submit(event.getResults());
+        ef.submit(event.getResults());
     }
 
     /**
