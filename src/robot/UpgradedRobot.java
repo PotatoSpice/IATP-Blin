@@ -12,6 +12,8 @@ import interf.IPoint;
 import impl.Point;
 import performance.EvaluateFire;
 import robocode.*;
+import robot.enemytracking.AdvancedEnemyBot;
+import robot.enemytracking.EnemyBot;
 import utils.Utils;
 
 import java.awt.*;
@@ -21,99 +23,9 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
-import static robocode.util.Utils.normalRelativeAngleDegrees;
+import static robocode.util.Utils.*;
 
 public class UpgradedRobot extends AdvancedRobot {
-
-    private class EnemyBot {
-        private String name;
-        private double bearing, heading, distance, energy, velocity;
-        private boolean exists;
-
-        private double targetProb;
-        private int firePower;
-
-        EnemyBot() {
-            reset();
-        }
-
-        public void updateFirePower(double fireProb) {
-            this.targetProb = fireProb;
-
-            // # Decisão sobre o disparo
-            switch (name) {
-                case "sample.Walls":
-                    if (fireProb >= 0.5)
-                        this.firePower = 10;
-                    else if(fireProb>=0.3)
-                        if(getDistance() < 150)
-                            this.firePower = 5;
-                        else if (getDistance() < 270)
-                            this.firePower = 3;
-                        else
-                            this.firePower = 2;
-                    else if (fireProb >= 0.1)
-                        this.firePower = 2;
-                    else
-                        this.firePower = -1;
-                    break;
-                default:
-                    if (fireProb >= 0.7)
-                        this.firePower = 10;
-                    else if(fireProb>=0.5)
-                        if(getDistance() < 150)
-                            this.firePower = 5;
-                        else if (getDistance() < 270)
-                            this.firePower = 3;
-                        else
-                            this.firePower = 2;
-                    else if (fireProb >= 0.3)
-                        this.firePower = 2;
-                    else
-                        this.firePower = -1;
-            }
-        }
-
-        public void update(ScannedRobotEvent event, double targetProb) {
-            this.name = event.getName();
-            this.bearing = event.getBearing();
-            this.heading = event.getHeading();
-            this.distance = event.getDistance();
-            this.energy = event.getEnergy();
-            this.velocity = event.getVelocity();
-            this.exists = true;
-
-            updateFirePower(targetProb);
-        }
-
-        public void reset() {
-            this.name = "";
-            this.bearing = 0.0;
-            this.distance = 0.0;
-            this.energy = 0.0;
-            this.velocity = 0.0;
-            this.exists = false;
-
-            this.firePower = -1;
-            this.targetProb = 0;
-        }
-
-        public void stopShooting() {
-            this.firePower = -1;
-        }
-
-        public String getName() { return this.name; }
-        public double getBearing() { return this.bearing; }
-        public double getHeading() { return this.heading; }
-        public double getDistance() { return this.distance; }
-        public double getEnergy() { return this.energy; }
-        public double getVelocity() { return this.velocity; }
-        public boolean exists() { return this.exists; }
-
-        public int getFirepower() { return this.firePower; }
-        public double getTargetProb() { return this.targetProb; }
-
-    }
 
     EvaluateFire ef; // leaderboard IA
     public static UIConfiguration conf; // robocode Map Config
@@ -121,10 +33,8 @@ public class UpgradedRobot extends AdvancedRobot {
     private List<Rectangle> obstacles;
     private List<IPoint> points;
     private HashMap<String, Rectangle> inimigos; // associar inimigos a retângulos e permitir a sua gestão
-    private EnemyBot targetEnemy = new EnemyBot();
+    private AdvancedEnemyBot targetEnemy = new AdvancedEnemyBot();
 
-    private double turn;
-    private int count;
     private boolean checkSurroundings = true, clearPath = false;
     private byte scanDirection = 1;
     private byte moveDirection = 1; // direção do movimento do robot (positivo - direita; negativo - esquerda)
@@ -156,6 +66,7 @@ public class UpgradedRobot extends AdvancedRobot {
                 // # colocar o robot em movimento no MouseClickEvent
                 if (currentPoint >= 0) {
                     targetEnemy.stopShooting();
+
                     IPoint ponto = points.get(currentPoint);
                     //se já está no ponto ou lá perto...
                     if (Utils.getDistance(this, ponto.getX(), ponto.getY()) < 2){
@@ -180,35 +91,27 @@ public class UpgradedRobot extends AdvancedRobot {
                 
                 // # disparar contra o inimigo
                 if (targetEnemy.exists()) {
-                    // rodar o canhão
-                    double addedAngle = 0.0;
-                    if (targetEnemy.getVelocity() > 0 && targetEnemy.getDistance() > 50) {
-                        addedAngle = targetEnemy.getVelocity();
-                        // enemy is going right
-                        if (targetEnemy.getHeading() > 0 && targetEnemy.getHeading() < 180) {
-                            // enemy is above us
-                            if (targetEnemy.getBearing() > -90 && targetEnemy.getBearing() < 90)
-                                addedAngle *= 1; // turn gun right a little bit
-                            // enemy is below us
-                            else
-                                addedAngle *= -1; // turn gun left a little bit
-                        } // enemy is going left
-                        else {
-                            // enemy is above us
-                            if (targetEnemy.getBearing() > -90 && targetEnemy.getBearing() < 90)
-                                addedAngle *= -1; // turn gun left a little bit
-                                // enemy is below us
-                            else
-                                addedAngle *= 1; // turn gun right a little bit
-                        }
-                    }
+
+                    // # calcular o ângulo do canhão para o disparo
+                    double bulletSpeed = 20 - targetEnemy.getFirepower() * 3;
+                    long time = (long)(targetEnemy.getDistance() / bulletSpeed);
+
+                    // calculate gun turn to predicted x,y location
+                    double futureX = targetEnemy.getFutureX(time);
+                    double futureY = targetEnemy.getFutureY(time);
+                    double absDeg = AdvancedEnemyBot.absoluteBearing(getX(), getY(), futureX, futureY);
+                    // turn the gun to the predicted x,y location
+
+                    // # rodar o canhão
                     double gunTurnAmt =
-                            normalRelativeAngleDegrees(addedAngle + targetEnemy.getBearing() + (getHeading() - getGunHeading()));
+                            normalRelativeAngleDegrees(absDeg - getGunHeading());
+                            //normalRelativeAngleDegrees(targetEnemy.getBearing() + (getHeading() - getGunHeading()));
                     setTurnGunRight(gunTurnAmt);
 
-                    // disparar!
-                    if (targetEnemy.firePower != -1) {
-                        setFireBullet(targetEnemy.firePower);
+                    // # disparar!
+                    if (targetEnemy.getFirepower() != -1 &&
+                            getGunHeat() == 0 && Math.abs(getGunTurnRemaining()) < 2) {
+                        setFireBullet(targetEnemy.getFirepower());
                         // System.out.println("# BULLET: Disparei ao " + targetEnemy.getName());
                     } else {
                         // System.out.println("# BULLET: Não disparei");
@@ -226,15 +129,19 @@ public class UpgradedRobot extends AdvancedRobot {
     public void onScannedRobot(ScannedRobotEvent event) {
         super.onScannedRobot(event);
 
+        // # atualizar direção do radar logo apos encontrar um inimigo
+        scanDirection *= -1; // changes value from 1 to -1
+        setTurnRadarRight(360 * scanDirection);
+
         // # guardar o resultado do modelo ML sobre a viabilidade do disparo ao inimigo
         Double value = evaluateBulletFire(event);
         // System.out.println("ModelPrediction: " + value + ", for " + event.getName());
 
         // # atualizar posição e disparo sobre o inimigo quando
         //      ainda não existe nenhum OU o valor do modelo ML é maior que o atual OU scannedRobot é o inimigo atual
-        if (!targetEnemy.exists || value > targetEnemy.getTargetProb() || event.getName().equals(targetEnemy.getName())) {
+        if (!targetEnemy.exists() || value > targetEnemy.getTargetProb() || event.getName().equals(targetEnemy.getName())) {
             String temp = targetEnemy.getName();
-            targetEnemy.update(event, value);
+            targetEnemy.update(event, value, this);
             if (!temp.equals(targetEnemy.getName()))
                 System.out.println("# NewTarget: " + targetEnemy.getName());
         }
@@ -252,42 +159,9 @@ public class UpgradedRobot extends AdvancedRobot {
         // System.out.println("Enemies at:");
         // obstacles.forEach(x -> System.out.println(x));
 
-        // # atualizar direção do radar
-        scanDirection *= -1; // changes value from 1 to -1
-        setTurnRadarRight(360 * scanDirection);
-
         // # sinalizar scan ao mapa se o robot estiver parado
         checkSurroundings = true;
         ef.addScanned(event); // leaderboard IA
-
-//        // # apontar canhão para o inimigo encontrado
-//        double gunTurnAmt = normalRelativeAngleDegrees(event.getBearing() + (getHeading() - getRadarHeading()));
-//        turnGunRight(gunTurnAmt);
-//
-//        Double value = evaluateBulletFire(event);
-//
-//        // # decisão sobre o disparo
-//        Bullet b = null;
-//        if (value >= 0.3) {
-//            if (value >= 0.7)
-//                b = setFireBullet(10);
-//            else if(value>=0.5)
-//                if(event.getDistance() < 150)
-//                    b = setFireBullet(5);
-//                else if (event.getDistance() < 270)
-//                    b = setFireBullet(3);
-//                else
-//                    b = setFireBullet(2);
-//            else if (value >= 0.3)
-//                b = setFireBullet(2);
-//        } else {
-//            b = null;
-//        }
-//        // System.out.println("ModelPrediction: " + value + ", for " + event.getName());
-//        if (b != null)
-//            System.out.println("# BULLET: Disparei ao " + event.getName());
-//        else
-//            System.out.println("# BULLET: Não disparei");
     }
 
     /**
@@ -404,8 +278,10 @@ public class UpgradedRobot extends AdvancedRobot {
         super.onHitByBullet(event);
 
         // # reagir ao dano
-        // setAhead(70 * moveDirection);
-        // checkSurroundings = true;
+        double bulletBearing = normalRelativeAngleDegrees(event.getBearing() + getHeading()) - 180;
+        setTurnRight(bulletBearing);
+        setAhead(70 * moveDirection);
+        checkSurroundings = true;
         // scan();
     }
 
@@ -417,19 +293,19 @@ public class UpgradedRobot extends AdvancedRobot {
         // turnGunRight(360);
         moveDirection *= -1;
         setAhead(90 * moveDirection);
+        checkSurroundings = true;
     }
 
     @Override
     public void onHitRobot(HitRobotEvent event) {
         super.onHitRobot(event);
 
-        // If he's in front of us, set back up a bit.
-        if (event.getBearing() > -90 && event.getBearing() < 90) {
+        // # afastar-se ao tocar contra outro robot
+        if (event.getBearing() > -90 && event.getBearing() < 90)
             setBack(100);
-        } // else he's in back of us, so set ahead a bit.
-        else {
+        else
             setAhead(100);
-        }
+        checkSurroundings = true;
     }
 
     @Override
@@ -477,7 +353,7 @@ public class UpgradedRobot extends AdvancedRobot {
         y -= robot.getY();
 
         double angleToTarget = Math.atan2(x, y);
-        double targetAngle = robocode.util.Utils.normalRelativeAngle(angleToTarget - Math.toRadians(robot.getHeading()));
+        double targetAngle = normalRelativeAngle(angleToTarget - Math.toRadians(robot.getHeading()));
         double distance = Math.hypot(x, y);
         double turnAngle = Math.atan(Math.tan(targetAngle));
         robot.setTurnRight(Math.toDegrees(turnAngle));
