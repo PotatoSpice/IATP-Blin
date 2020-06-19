@@ -20,64 +20,58 @@ public class Cromossoma implements Comparable<Cromossoma> {
 
     public static IUIConfiguration conf;
 
-    private Conf dataConf = new Conf();
+    private final int maxMap = Conf.map_size, minMap = 0; // limites do mapa
+    private int colisionN = 0; // contador de colisões
+    private final int colisionWeight = 30000; // valor de peso no fitness para uma colisão
 
-    private int maxTam = 5;
-    private int minTam = 0;
-    private int maxMap = Conf.map_size;
-    private int minMap = 0;
-    private int colisionN = 0;
+    private double totaldist;  // distância total do percurso
+    public List<IPoint> points = new ArrayList<>(); // lista dos pontos no percurso (mudanças de trajetória)
+    public List<Rectangle> rectangles; // lista de obstáculos no mapa
 
-    private int colisionWeight = 30000;
-
-    private double totaldist;
-
-    protected int tam = numeroAleatorio(minTam, maxTam);
-    public List<IPoint> points = new ArrayList<>();
-    public List<Rectangle> rectangles;
-
-    public Cromossoma() {
-        rectangles = conf.getObstacles();
-        points.add(conf.getStart());
-        this.starting();
-        points.add(conf.getEnd());
-        totaldist = 0.0;
-    }
-
-
-    public Cromossoma(IUIConfiguration pconf){
-        conf = pconf;
-        rectangles = conf.getObstacles();
-        points.add(conf.getStart());
-        this.starting();
-        points.add(conf.getEnd());
-        totaldist = 0.0;
-    }
-
-    public Cromossoma(boolean child) { //Para as mutações
+    /**
+     * Nova instância de um Cromossoma. Poderá ser gerado um trajeto aleatoriamente ou baseado em mutação ou cruzamento.
+     *
+     * @param random true é gerado um trajeto aleatório, false não são inicializados nenhuns pontos para o trajeto
+     *               (utilizado na construção de cromossomas baseados em cruzamento ou mutação)
+     */
+    public Cromossoma(boolean random) {
         rectangles = conf.getObstacles();
         totaldist = 0.0;
+        if (random) { // # gerar pontos aleatórios do trajeto
+            points.add(conf.getStart());
+            this.starting();
+            points.add(conf.getEnd());
+        }
     }
 
+    /**
+     * Gera um trajeto aleatório para este cromossoma, se ainda não existir um.
+     */
     public void starting() {
         if (lineIntersects((Point) points.get(0), (Point) conf.getEnd())) {
             Point oldPoint = (Point) points.get(0);
             Point newPoint;
             int x;
             int y;
-            do {
-                do {
+            do { // gera vários pontos até que a linha descrita com o ponto final não colida com um obstáculo...
+                do { // gera um novo ponto até que a linha descrita entre o antigo e o novo não colida com um obstáculo...
                     x = numeroAleatorio(minMap, maxMap);
                     y = numeroAleatorio(minMap, maxMap);
                     newPoint = new Point(x, y);
                 } while (lineIntersects(oldPoint, newPoint));
                 points.add(newPoint);
                 oldPoint = newPoint;
-                //System.out.println("X: " + x + "; Y: " + y);
-            }while(lineIntersects(oldPoint, (Point) conf.getEnd()));
+            } while(lineIntersects(oldPoint, (Point) conf.getEnd()));
         }
     }
 
+    /**
+     * Número aleatório entre dois extremos.
+     *
+     * @param min extremo inferior
+     * @param max extremo superior
+     * @return valor aleatório obtido
+     */
     public int numeroAleatorio(int min, int max) {
 
         Random rand = new Random();
@@ -86,24 +80,20 @@ public class Cromossoma implements Comparable<Cromossoma> {
         return randomNum;
     }
 
-    public void map() {
-        PathViewer pv = new PathViewer(conf);
-        pv.setFitness(9999);
-        pv.setStringPath("test");
-        pv.paintPath(points);
-    }
-
+    /**
+     * Executa uma mutação sobre a informação deste cromossoma, gerando um novo cromossoma.
+     *
+     * @return novo cromossoma gerado por mutação
+     */
     public Cromossoma mutate() {
-        Cromossoma novo = new Cromossoma();
-        novo.points.clear();
+        Cromossoma novo = new Cromossoma(false);
 
         for (int ix = 0; ix < points.size(); ix++) {
             novo.points.add(this.points.get(ix));
         }
 
         Random random = new Random();
-        int newx;
-        int newy;
+        int newx, newy;
 
         if (this.colisionChecker()) {
             if (points.size() <= 3) {
@@ -135,14 +125,19 @@ public class Cromossoma implements Comparable<Cromossoma> {
                 //System.out.println(points.get(rand));
             }
         }
-
         return novo;
     }
 
+    /**
+     * Executa um cruzamento entre este cromossoma e um outro passado por parâmetro gerando dois novos cromossomas.
+     *
+     * @param other cromossoma para cruzamento
+     * @return array de duas posições com cada um dos cromossomas gerados
+     */
     public Cromossoma[] cross(Cromossoma other) {
 
-        Cromossoma filho1 = new Cromossoma(true);
-        Cromossoma filho2 = new Cromossoma(true);
+        Cromossoma filho1 = new Cromossoma(false);
+        Cromossoma filho2 = new Cromossoma(false);
 
         filho1.points.add(conf.getStart());
         filho2.points.add(conf.getStart());
@@ -178,23 +173,20 @@ public class Cromossoma implements Comparable<Cromossoma> {
         return novos;
     }
 
-    public String[] givePoints() {
-        Point point;
-        Point prevPoint;
-        String[] lines = new String[points.size()];
-        for (int ix = 1; ix < this.points.size(); ix++) {
-            point = (Point) this.points.get(ix);
-            prevPoint = (Point) this.points.get(ix - 1);
-            lines[ix - 1] = (prevPoint.getX() + "; " + point.getX() + "; " + prevPoint.getY() + "; " + point.getY());
-            System.out.println("Point " + ix + ": " + (prevPoint.getX() + "; " + point.getX() + "; " + prevPoint.getY() + "; " + point.getY()));
-        }
-        return lines;
-    }
-
+    /**
+     * Lista de todos os pontos existentes no trajeto descrito por este cromossoma
+     *
+     * @return lista de IPoint
+     */
     public List<IPoint> getPoints() {
         return points;
     }
 
+    /**
+     * Calcula o número de colisões ocorridas pelo trajeto descrito por este cromossoma
+     *
+     * @return true se houveram colisões, false no contrário
+     */
     public boolean colisionChecker() {
         boolean colflag = false;
         colisionN = 0;
@@ -215,6 +207,13 @@ public class Cromossoma implements Comparable<Cromossoma> {
         return colflag;
     }
 
+    /**
+     * Cria uma linha entre dois pontos e verifica se existem colisoes com obstaculos.
+     *
+     * @param point1 primeiro ponto
+     * @param point2 segundo ponto
+     * @return true se a linha descrita entre os pontos toca em qualquer um dos obstáculos
+     */
     public boolean lineIntersects(Point point1, Point point2) {
         Line2D line2d = new Line2D.Double(point1.getX(), point1.getY(), point2.getX(), point2.getY());
         for (int ix = 0; ix < this.rectangles.size(); ix++) {
@@ -225,6 +224,11 @@ public class Cromossoma implements Comparable<Cromossoma> {
         return false;
     }
 
+    /**
+     * Calcula a distância do trajeto descrito neste cromossoma
+     *
+     * @return valor da distância
+     */
     public double getDistance() {
         totaldist = 0.0;
         for (int ix = 1; ix < this.points.size(); ix++) {
@@ -235,6 +239,11 @@ public class Cromossoma implements Comparable<Cromossoma> {
         return totaldist;
     }
 
+    /**
+     * Calcula o fitness deste cromossoma para a execução do algoritmo genético.
+     *
+     * @return valor do fitness para este cromossoma.
+     */
     public double getFitness() {
         double value = 0.0;
 
