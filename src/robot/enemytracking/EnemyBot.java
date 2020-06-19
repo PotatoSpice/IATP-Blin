@@ -11,52 +11,22 @@ public class EnemyBot {
     private String name;
     private double bearing, heading, distance, energy, velocity;
 
-    private double targetProb;
     private int firePower;
+    private boolean cannonFire;
+    private double targetProb;
 
     public EnemyBot() {
         reset();
     }
 
     /**
-     * Partindo do resultado do modelo ML, verifica se o Robot deve disparar e com quanto dano.
+     * Atualiza a flag do disparo contra o alvo
      *
-     * @param fireProb resultado do modelo ML
+     * @param power força da bala do canhão
      */
-    public void updateFirePower(double fireProb /*, int currNumEnemies*/) {
-        this.targetProb = fireProb;
-
-        // # tendo em conta o benchmarking realizado para este robot e querendo obter melhores classificações,
-        //      é construido aqui uma "emenda" para a lógica do disparo. ## DEPRECATED
-        //if (currNumEnemies == 1)
-        //    if (fireProb >= 0.5)
-        //        this.firePower = 10;
-        //    else if (fireProb >= 0.3)
-        //        if (getDistance() < 150)
-        //            this.firePower = 5;
-        //        else if (getDistance() < 270)
-        //            this.firePower = 3;
-        //        else
-        //            this.firePower = 2;
-        //    else if (fireProb >= 0.1)
-        //        this.firePower = 2;
-        //    else
-        //        this.firePower = -1;
-        //else
-            // # decisão sobre o disparo
-            if (fireProb >= 0.7)
-                this.firePower = 10;
-            else if (fireProb >= 0.5)
-                if (getDistance() < 150)
-                    this.firePower = 5;
-                else if (getDistance() < 270)
-                    this.firePower = 3;
-                else
-                    this.firePower = 2;
-            else if (fireProb >= 0.3)
-                this.firePower = 2;
-            else
-                this.firePower = -1;
+    public void updateCanonFire(int power) {
+        this.firePower = power;
+        this.cannonFire = power != -1;
     }
 
     /**
@@ -73,7 +43,7 @@ public class EnemyBot {
         this.energy = event.getEnergy();
         this.velocity = event.getVelocity();
 
-        updateFirePower(targetProb);
+        this.targetProb = targetProb;
     }
 
     /**
@@ -87,7 +57,7 @@ public class EnemyBot {
         this.energy = 0.0;
         this.velocity = 0.0;
 
-        this.firePower = -1;
+        this.cannonFire = false;
         this.targetProb = 0;
     }
 
@@ -98,7 +68,7 @@ public class EnemyBot {
      * várias vezes.
      */
     public void stopShooting() {
-        this.firePower = -1;
+        this.cannonFire = false;
     }
 
     public String getName() { return this.name; }
@@ -107,9 +77,10 @@ public class EnemyBot {
     public double getDistance() { return this.distance; }
     public double getEnergy() { return this.energy; }
     public double getVelocity() { return this.velocity; }
-    public boolean exists() { return !name.equals(""); }
 
-    public int getFirepower() { return this.firePower; }
+    public boolean exists() { return !name.equals(""); }
     public double getTargetProb() { return this.targetProb; }
 
+    public int getFirePower() { return this.firePower; }
+    public boolean isCanonFire() { return this.cannonFire; }
 }

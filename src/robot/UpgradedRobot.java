@@ -92,7 +92,7 @@ public class UpgradedRobot extends AdvancedRobot {
                 if (targetEnemy.exists()) {
 
                     // # calcular o ângulo do canhão para o disparo
-                    double bulletSpeed = 20 - targetEnemy.getFirepower() * 3;
+                    double bulletSpeed = 20 - targetEnemy.getFirePower() * 3;
                     long time = (long)(targetEnemy.getDistance() / bulletSpeed);
 
                     // calculate gun turn to predicted x,y location
@@ -107,10 +107,45 @@ public class UpgradedRobot extends AdvancedRobot {
                             //normalRelativeAngleDegrees(targetEnemy.getBearing() + (getHeading() - getGunHeading()));
                     setTurnGunRight(gunTurnAmt);
 
+                    // # calcular a potência do disparo
+                    double fireProb = targetEnemy.getTargetProb();
+
+                    // # tendo em conta o benchmarking realizado para este robot e querendo obter melhores classificações,
+                    //      é construido aqui uma "emenda" para a lógica do disparo. ## DEPRECATED
+                    //if (currNumEnemies == 1)
+                    //    if (fireProb >= 0.5)
+                    //        this.firePower = 10;
+                    //    else if (fireProb >= 0.3)
+                    //        if (getDistance() < 150)
+                    //            this.firePower = 5;
+                    //        else if (getDistance() < 270)
+                    //            this.firePower = 3;
+                    //        else
+                    //            this.firePower = 2;
+                    //    else if (fireProb >= 0.1)
+                    //        this.firePower = 2;
+                    //    else
+                    //        this.firePower = -1;
+                    //else
+                    // # decisão sobre o disparo
+                        if (fireProb >= 0.7)
+                            targetEnemy.updateCanonFire(10);
+                        else if (fireProb >= 0.5)
+                            if (targetEnemy.getDistance() < 150)
+                                targetEnemy.updateCanonFire(5);
+                            else if (targetEnemy.getDistance() < 270)
+                                targetEnemy.updateCanonFire(3);
+                            else
+                                targetEnemy.updateCanonFire(2);
+                        else if (fireProb >= 0.3)
+                            targetEnemy.updateCanonFire(2);
+                        else
+                            targetEnemy.updateCanonFire(-1);
+
                     // # disparar!
-                    if (targetEnemy.getFirepower() != -1 &&
+                    if (targetEnemy.isCanonFire() &&
                             getGunHeat() == 0 && Math.abs(getGunTurnRemaining()) < 2) {
-                        setFireBullet(targetEnemy.getFirepower());
+                        setFireBullet(targetEnemy.getFirePower());
                         // System.out.println("# BULLET: Disparei ao " + targetEnemy.getName());
                     } else {
                         // System.out.println("# BULLET: Não disparei");
