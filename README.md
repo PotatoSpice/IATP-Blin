@@ -1,4 +1,4 @@
-# IATP-Blin
+# TP Inteligência Artificial - 2019/2020
 
 <p>
 Tendo em conta o enunciado do projeto,
